@@ -17,26 +17,31 @@
     "dir": "dist/server",
     "entry": "index.cjs"
   },
+  "permissions": {
+    "redis": true,
+    "reddit": {
+      "enable": true,
+      "asUser": ["SUBMIT_COMMENT"]
+    }
+  },
+  "scheduler": {
+    "tasks": {
+      "daily-post": {
+        "endpoint": "/internal/scheduler/daily-post",
+        "cron": "0 6 * * *"
+      }
+    }
+  },
   "menu": {
     "items": [
       {
-        "label": "Create a new post",
-        "description": "pasalacabra",
+        "label": "Create today's Pasalacabra post",
+        "description": "Manual backstop if the daily post is missing",
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/post-create"
-      },
-      {
-        "label": "Example form",
-        "description": "Show a simple form",
-        "location": "subreddit",
-        "forUserType": "moderator",
-        "endpoint": "/internal/menu/example-form"
       }
     ]
-  },
-  "forms": {
-    "exampleForm": "/internal/form/example-submit"
   },
   "triggers": {
     "onAppInstall": "/internal/triggers/on-app-install"

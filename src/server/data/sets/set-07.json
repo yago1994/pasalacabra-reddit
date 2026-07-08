@@ -1,0 +1,31 @@
+{
+  "id": "set-07",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Bellows-driven squeezebox instrument heard in polka and tango", "answer": "accordion" },
+    { "letter": "B", "mode": "starts", "question": "Curved Australian throwing stick designed to return to the thrower", "answer": "boomerang" },
+    { "letter": "C", "mode": "starts", "question": "Last pharaoh of ancient Egypt, ally of Julius Caesar and Mark Antony", "answer": "Cleopatra" },
+    { "letter": "D", "mode": "starts", "question": "Wild dog of Australia", "answer": "dingo" },
+    { "letter": "E", "mode": "starts", "question": "Spiny egg-laying mammal of Australia, also called a spiny anteater", "answer": "echidna" },
+    { "letter": "F", "mode": "starts", "question": "Beetle that glows at night using bioluminescence", "answer": "firefly" },
+    { "letter": "G", "mode": "starts", "question": "Hot spring that erupts jets of water and steam, like Old Faithful", "answer": "geyser" },
+    { "letter": "H", "mode": "starts", "question": "Three-dimensional image created with lasers", "answer": "hologram" },
+    { "letter": "I", "mode": "starts", "question": "Hormone from the pancreas that regulates blood sugar", "answer": "insulin" },
+    { "letter": "J", "mode": "starts", "question": "Puzzle of interlocking pieces that form a picture", "answer": "jigsaw" },
+    { "letter": "K", "mode": "starts", "question": "Base unit of mass in the metric system, about 2.2 pounds", "answer": "kilogram" },
+    { "letter": "L", "mode": "starts", "question": "Clawed ocean crustacean that turns red when cooked", "answer": "lobster" },
+    { "letter": "M", "mode": "starts", "question": "Umbrella-shaped fungus; the portobello is an edible one", "answer": "mushroom" },
+    { "letter": "N", "mode": "starts", "question": "Farthest planet from the sun, named after the Roman sea god", "answer": "Neptune" },
+    { "letter": "O", "mode": "starts", "question": "Elegant exotic flower prized by collectors, often grown on bark", "answer": "orchid" },
+    { "letter": "P", "mode": "starts", "question": "Roman city buried by the eruption of Mount Vesuvius in 79 AD", "answer": "Pompeii" },
+    { "letter": "Q", "mode": "starts", "question": "Loose water-soaked ground that swallows heavy things that step in it", "answer": "quicksand" },
+    { "letter": "R", "mode": "starts", "question": "Creamy Italian rice dish stirred slowly with broth", "answer": "risotto" },
+    { "letter": "S", "mode": "starts", "question": "Capital of Sweden, built across fourteen islands", "answer": "Stockholm" },
+    { "letter": "T", "mode": "starts", "question": "Famous unsinkable ocean liner that struck an iceberg in 1912", "answer": "Titanic" },
+    { "letter": "U", "mode": "starts", "question": "Milk-producing organ of a cow", "answer": "udder" },
+    { "letter": "V", "mode": "starts", "question": "Flavoring from a tropical pod, the world's most popular for ice cream", "answer": "vanilla" },
+    { "letter": "W", "mode": "starts", "question": "Capital of Poland, rebuilt after World War II", "answer": "Warsaw" },
+    { "letter": "X", "mode": "contains", "question": "Smallest dot of a digital image; screens are made of millions of them", "answer": "pixel" },
+    { "letter": "Y", "mode": "starts", "question": "Legendary ape-like creature said to roam the Himalayan snows", "answer": "yeti" },
+    { "letter": "Z", "mode": "starts", "question": "Reanimated corpse of horror movies, hungry for brains", "answer": "zombie" }
+  ]
+}

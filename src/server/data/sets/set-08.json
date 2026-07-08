@@ -1,0 +1,31 @@
+{
+  "id": "set-08",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "World's largest rainforest, and the river that runs through it", "answer": "Amazon" },
+    { "letter": "B", "mode": "starts", "question": "Grand church building; St. Peter's in Vatican City is a famous one", "answer": "basilica" },
+    { "letter": "C", "mode": "starts", "question": "Tiny marine animals whose skeletons build reefs like the Great Barrier", "answer": "coral" },
+    { "letter": "D", "mode": "starts", "question": "Rectangular tile with dots, toppled in long chains", "answer": "domino", "alt": ["dominoes"] },
+    { "letter": "E", "mode": "starts", "question": "Physicist who developed the theory of relativity", "answer": "Einstein" },
+    { "letter": "F", "mode": "starts", "question": "Anise-flavored vegetable with a white bulb and feathery fronds", "answer": "fennel" },
+    { "letter": "G", "mode": "starts", "question": "Slender, fast African antelope hunted by cheetahs", "answer": "gazelle" },
+    { "letter": "H", "mode": "starts", "question": "African carnivore known for its eerie laugh", "answer": "hyena" },
+    { "letter": "I", "mode": "starts", "question": "Turkish city that straddles two continents, once called Constantinople", "answer": "Istanbul" },
+    { "letter": "J", "mode": "starts", "question": "Japanese martial art whose name means gentle way", "answer": "judo" },
+    { "letter": "K", "mode": "starts", "question": "Traditional Japanese robe tied with a wide sash", "answer": "kimono" },
+    { "letter": "L", "mode": "starts", "question": "Baked Italian dish of flat pasta sheets layered with sauce and cheese", "answer": "lasagna", "alt": ["lasagne"] },
+    { "letter": "M", "mode": "starts", "question": "North African country home to Casablanca and Marrakesh", "answer": "Morocco" },
+    { "letter": "N", "mode": "starts", "question": "Small bird celebrated for its beautiful night-time song; also Florence's surname", "answer": "nightingale" },
+    { "letter": "O", "mode": "starts", "question": "Playful river mammal that floats on its back cracking shellfish", "answer": "otter" },
+    { "letter": "P", "mode": "starts", "question": "Twisted knot-shaped baked snack sprinkled with salt", "answer": "pretzel" },
+    { "letter": "Q", "mode": "starts", "question": "Case for carrying arrows; also means to tremble", "answer": "quiver" },
+    { "letter": "R", "mode": "starts", "question": "Deep red precious gemstone, birthstone of July", "answer": "ruby" },
+    { "letter": "S", "mode": "starts", "question": "Japanese dish of vinegared rice with fish or vegetables", "answer": "sushi" },
+    { "letter": "T", "mode": "starts", "question": "Large hairy spider kept as an exotic pet", "answer": "tarantula" },
+    { "letter": "U", "mode": "starts", "question": "East African country where the White Nile begins at Lake Victoria", "answer": "Uganda" },
+    { "letter": "V", "mode": "starts", "question": "Norse seafaring raider of the Middle Ages", "answer": "Viking" },
+    { "letter": "W", "mode": "starts", "question": "Magic-wielding man of fantasy tales, like Merlin or Gandalf", "answer": "wizard" },
+    { "letter": "X", "mode": "contains", "question": "Mythical bird reborn from its own ashes; also Arizona's capital", "answer": "phoenix" },
+    { "letter": "Y", "mode": "starts", "question": "Single-celled fungus that makes bread rise and beer ferment", "answer": "yeast" },
+    { "letter": "Z", "mode": "starts", "question": "Rigid airship; the Hindenburg was one", "answer": "zeppelin" }
+  ]
+}

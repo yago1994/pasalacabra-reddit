@@ -1,0 +1,31 @@
+{
+  "id": "set-14",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Enormous South American snake that squeezes its prey", "answer": "anaconda" },
+    { "letter": "B", "mode": "starts", "question": "Alloy of copper and tin; also the third-place medal", "answer": "bronze" },
+    { "letter": "C", "mode": "starts", "question": "Chewy golden candy made by melting sugar", "answer": "caramel" },
+    { "letter": "D", "mode": "starts", "question": "Long-bodied, short-legged sausage dog breed", "answer": "dachshund" },
+    { "letter": "E", "mode": "starts", "question": "Bird of prey on the national seal of the United States", "answer": "eagle" },
+    { "letter": "F", "mode": "starts", "question": "Olympic sword-fighting sport using foil, epee and sabre", "answer": "fencing" },
+    { "letter": "G", "mode": "starts", "question": "Small lizard whose sticky toes let it walk up walls", "answer": "gecko" },
+    { "letter": "H", "mode": "starts", "question": "Sweet golden food made by bees from flower nectar", "answer": "honey" },
+    { "letter": "I", "mode": "starts", "question": "Climbing evergreen vine that covers old brick walls", "answer": "ivy" },
+    { "letter": "J", "mode": "starts", "question": "Caribbean island nation, birthplace of reggae and Usain Bolt", "answer": "Jamaica" },
+    { "letter": "K", "mode": "starts", "question": "Chess piece shaped like a horse; also a medieval warrior in armor", "answer": "knight" },
+    { "letter": "L", "mode": "starts", "question": "Maze of ancient Crete where the Minotaur was kept", "answer": "labyrinth" },
+    { "letter": "M", "mode": "starts", "question": "Plant hung at Christmas that invites a kiss beneath it", "answer": "mistletoe" },
+    { "letter": "N", "mode": "starts", "question": "Book-length work of fiction", "answer": "novel" },
+    { "letter": "O", "mode": "starts", "question": "Small Mediterranean fruit pressed to make a famous cooking oil", "answer": "olive" },
+    { "letter": "P", "mode": "starts", "question": "Greek god of the sea, wielder of the trident", "answer": "Poseidon" },
+    { "letter": "Q", "mode": "starts", "question": "Padded bed cover stitched together from patches of fabric", "answer": "quilt" },
+    { "letter": "R", "mode": "starts", "question": "Small stuffed pasta squares", "answer": "ravioli" },
+    { "letter": "S", "mode": "starts", "question": "Capital of Chile", "answer": "Santiago" },
+    { "letter": "T", "mode": "starts", "question": "Soybean curd, a protein staple of vegetarian cooking", "answer": "tofu" },
+    { "letter": "U", "mode": "starts", "question": "Invisible light beyond violet that causes sunburn", "answer": "ultraviolet" },
+    { "letter": "V", "mode": "starts", "question": "Dizzy spinning sensation; also a classic Hitchcock film", "answer": "vertigo" },
+    { "letter": "W", "mode": "starts", "question": "Domed dwelling built by some Native American peoples", "answer": "wigwam" },
+    { "letter": "X", "mode": "contains", "question": "Combat sport of gloved punches fought in a ring", "answer": "boxing" },
+    { "letter": "Y", "mode": "starts", "question": "Spinning toy that rolls up and down a string", "answer": "yo-yo", "alt": ["yoyo"] },
+    { "letter": "Z", "mode": "starts", "question": "Branch of biology that studies animals", "answer": "zoology" }
+  ]
+}

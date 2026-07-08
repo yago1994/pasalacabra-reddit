@@ -1,0 +1,31 @@
+{
+  "id": "set-05",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Rocky object orbiting the sun, mostly found in a belt between Mars and Jupiter", "answer": "asteroid" },
+    { "letter": "B", "mode": "starts", "question": "German composer who wrote nine symphonies despite going deaf", "answer": "Beethoven" },
+    { "letter": "C", "mode": "starts", "question": "Sweet spice made from the inner bark of a tropical tree", "answer": "cinnamon" },
+    { "letter": "D", "mode": "starts", "question": "Yellow weed whose fluffy seed head is blown to make a wish", "answer": "dandelion" },
+    { "letter": "E", "mode": "starts", "question": "African country of the pharaohs, home to the Great Sphinx", "answer": "Egypt" },
+    { "letter": "F", "mode": "starts", "question": "Swiss dish of melted cheese eaten by dipping bread on long forks", "answer": "fondue" },
+    { "letter": "G", "mode": "starts", "question": "Cradle of democracy and the ancient Olympic Games", "answer": "Greece" },
+    { "letter": "H", "mode": "starts", "question": "Small spiny mammal that rolls into a ball when threatened", "answer": "hedgehog" },
+    { "letter": "I", "mode": "starts", "question": "Hard white material from elephant tusks, once used for piano keys", "answer": "ivory" },
+    { "letter": "J", "mode": "starts", "question": "Gelatinous sea creature with trailing, stinging tentacles", "answer": "jellyfish" },
+    { "letter": "K", "mode": "starts", "question": "Narrow paddle boat whose name reads the same backwards", "answer": "kayak" },
+    { "letter": "L", "mode": "starts", "question": "Fragrant purple herb used in perfumes and to aid sleep", "answer": "lavender" },
+    { "letter": "M", "mode": "starts", "question": "Small African mongoose that stands upright to keep watch", "answer": "meerkat" },
+    { "letter": "N", "mode": "starts", "question": "Giant cloud of gas and dust in space where stars are born", "answer": "nebula" },
+    { "letter": "O", "mode": "starts", "question": "Largest living bird, a fast African runner that cannot fly", "answer": "ostrich" },
+    { "letter": "P", "mode": "starts", "question": "Orange-fleshed tropical fruit with black peppery seeds", "answer": "papaya" },
+    { "letter": "Q", "mode": "starts", "question": "Feather pen used for writing before fountain pens existed", "answer": "quill" },
+    { "letter": "R", "mode": "starts", "question": "System that detects planes and ships by bouncing radio waves off them", "answer": "radar" },
+    { "letter": "S", "mode": "starts", "question": "Long thin pasta often served with meatballs", "answer": "spaghetti" },
+    { "letter": "T", "mode": "starts", "question": "Giant ocean wave triggered by an undersea earthquake", "answer": "tsunami" },
+    { "letter": "U", "mode": "starts", "question": "Small four-stringed Hawaiian instrument", "answer": "ukulele" },
+    { "letter": "V", "mode": "starts", "question": "Bald-headed scavenger bird that circles high looking for carrion", "answer": "vulture" },
+    { "letter": "W", "mode": "starts", "question": "Burrowing Australian marsupial famous for cube-shaped droppings", "answer": "wombat" },
+    { "letter": "X", "mode": "contains", "question": "Cunning bushy-tailed wild canine; the red species is the most widespread", "answer": "fox" },
+    { "letter": "Y", "mode": "starts", "question": "Yellow center of an egg", "answer": "yolk" },
+    { "letter": "Z", "mode": "starts", "question": "Long green summer squash, called courgette in Britain", "answer": "zucchini" }
+  ]
+}

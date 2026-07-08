@@ -1,0 +1,31 @@
+{
+  "id": "set-10",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Small orange stone fruit, like a little peach, often eaten dried", "answer": "apricot" },
+    { "letter": "B", "mode": "starts", "question": "Small round fruit that stains your tongue purple, great in muffins", "answer": "blueberry" },
+    { "letter": "C", "mode": "starts", "question": "Grand church that is the seat of a bishop, like Notre-Dame", "answer": "cathedral" },
+    { "letter": "D", "mode": "starts", "question": "Bram Stoker's famous vampire count", "answer": "Dracula" },
+    { "letter": "E", "mode": "starts", "question": "Australian tree whose leaves are the koala's only food", "answer": "eucalyptus" },
+    { "letter": "F", "mode": "starts", "question": "Feathery green plant that reproduces by spores instead of seeds", "answer": "fern" },
+    { "letter": "G", "mode": "starts", "question": "Fighter who battled for crowds in the Roman Colosseum", "answer": "gladiator" },
+    { "letter": "H", "mode": "starts", "question": "Capital of Finland", "answer": "Helsinki" },
+    { "letter": "I", "mode": "starts", "question": "Nordic island nation of geysers, volcanoes and hot springs", "answer": "Iceland" },
+    { "letter": "J", "mode": "starts", "question": "Professional rider of racehorses", "answer": "jockey" },
+    { "letter": "K", "mode": "starts", "question": "Fortified complex in Moscow, seat of the Russian government", "answer": "Kremlin" },
+    { "letter": "L", "mode": "starts", "question": "Wide-eyed primate found only on Madagascar", "answer": "lemur" },
+    { "letter": "M", "mode": "starts", "question": "Extinct woolly relative of the elephant with huge curved tusks", "answer": "mammoth" },
+    { "letter": "N", "mode": "starts", "question": "Capital of Kenya", "answer": "Nairobi" },
+    { "letter": "O", "mode": "starts", "question": "Double-reed woodwind that gives the orchestra its tuning note", "answer": "oboe" },
+    { "letter": "P", "mode": "starts", "question": "Water bird that scoops fish into its large throat pouch", "answer": "pelican" },
+    { "letter": "Q", "mode": "starts", "question": "Canada's French-speaking province", "answer": "Quebec" },
+    { "letter": "R", "mode": "starts", "question": "River flowing from the Swiss Alps through Germany to the North Sea", "answer": "Rhine" },
+    { "letter": "S", "mode": "starts", "question": "Wide-brimmed Mexican hat", "answer": "sombrero" },
+    { "letter": "T", "mode": "starts", "question": "Small sweet citrus fruit named after a Moroccan port city", "answer": "tangerine" },
+    { "letter": "U", "mode": "starts", "question": "Spiny globe-shaped sea creature; also an old word for a scruffy child", "answer": "urchin" },
+    { "letter": "V", "mode": "starts", "question": "Italian city of canals and gondolas", "answer": "Venice" },
+    { "letter": "W", "mode": "starts", "question": "Place where a river plunges over a cliff, like Niagara", "answer": "waterfall" },
+    { "letter": "X", "mode": "contains", "question": "Country south of the United States, home of tacos and mariachi", "answer": "Mexico" },
+    { "letter": "Y", "mode": "starts", "question": "Spun fiber used for knitting; also slang for a long rambling story", "answer": "yarn" },
+    { "letter": "Z", "mode": "starts", "question": "Line that moves in sharp alternating turns, like a lightning bolt", "answer": "zigzag" }
+  ]
+}

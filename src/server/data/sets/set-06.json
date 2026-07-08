@@ -1,0 +1,31 @@
+{
+  "id": "set-06",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Huge seabird with the largest wingspan of any living bird", "answer": "albatross" },
+    { "letter": "B", "mode": "starts", "question": "Massive shaggy grazer of the North American plains", "answer": "buffalo", "alt": ["bison"] },
+    { "letter": "C", "mode": "starts", "question": "Icy space object that grows a glowing tail when it nears the sun", "answer": "comet" },
+    { "letter": "D", "mode": "starts", "question": "Europe's second-longest river, flowing through Vienna and Budapest", "answer": "Danube" },
+    { "letter": "E", "mode": "starts", "question": "Strong Italian coffee brewed by forcing hot water through fine grounds", "answer": "espresso" },
+    { "letter": "F", "mode": "starts", "question": "Painting technique on wet plaster, used on the Sistine Chapel ceiling", "answer": "fresco" },
+    { "letter": "G", "mode": "starts", "question": "Largest living primate, native to African forests", "answer": "gorilla" },
+    { "letter": "H", "mode": "starts", "question": "Asian mountain range containing the world's highest peaks", "answer": "Himalayas" },
+    { "letter": "I", "mode": "starts", "question": "Country home to the Taj Mahal and Bollywood", "answer": "India" },
+    { "letter": "J", "mode": "starts", "question": "Spear thrown for distance in a track-and-field event", "answer": "javelin" },
+    { "letter": "K", "mode": "starts", "question": "Sweet tomato condiment squeezed onto fries and burgers", "answer": "ketchup" },
+    { "letter": "L", "mode": "starts", "question": "Spotted big cat that drags its prey up into trees", "answer": "leopard" },
+    { "letter": "M", "mode": "starts", "question": "Austrian child prodigy who composed The Magic Flute", "answer": "Mozart" },
+    { "letter": "N", "mode": "starts", "question": "Warm spice grated over eggnog, from the seed of an Indonesian tree", "answer": "nutmeg" },
+    { "letter": "O", "mode": "starts", "question": "Iridescent gemstone, Australia's national gem and a birthstone of October", "answer": "opal" },
+    { "letter": "P", "mode": "starts", "question": "Egg-laying Australian mammal with a duck-like bill", "answer": "platypus" },
+    { "letter": "Q", "mode": "starts", "question": "Extremely bright galactic core powered by a supermassive black hole", "answer": "quasar" },
+    { "letter": "R", "mode": "starts", "question": "Large black bird famous from an Edgar Allan Poe poem", "answer": "raven" },
+    { "letter": "S", "mode": "starts", "question": "Bushy-tailed rodent that buries nuts for the winter", "answer": "squirrel" },
+    { "letter": "T", "mode": "starts", "question": "Tropical American bird with a huge colorful bill", "answer": "toucan" },
+    { "letter": "U", "mode": "starts", "question": "Everything that exists: all matter, energy, space and time", "answer": "universe" },
+    { "letter": "V", "mode": "starts", "question": "Preparation that trains the immune system to fight a disease", "answer": "vaccine" },
+    { "letter": "W", "mode": "starts", "question": "Fiery green Japanese paste served alongside sushi", "answer": "wasabi" },
+    { "letter": "X", "mode": "contains", "question": "Mythical creature with a lion's body and human head; a giant one guards Giza", "answer": "sphinx" },
+    { "letter": "Y", "mode": "starts", "question": "Middle Eastern country at the southern tip of the Arabian Peninsula", "answer": "Yemen" },
+    { "letter": "Z", "mode": "starts", "question": "Band of twelve star signs from Aries to Pisces", "answer": "zodiac" }
+  ]
+}

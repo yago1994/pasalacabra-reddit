@@ -1,0 +1,31 @@
+{
+  "id": "set-04",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Branch of mathematics that uses letters to stand for unknown numbers", "answer": "algebra" },
+    { "letter": "B", "mode": "starts", "question": "Fast-growing giant grass that pandas love to eat", "answer": "bamboo" },
+    { "letter": "C", "mode": "starts", "question": "Spiny desert plant that stores water in its stem", "answer": "cactus" },
+    { "letter": "D", "mode": "starts", "question": "Explosive invented by Alfred Nobel", "answer": "dynamite" },
+    { "letter": "E", "mode": "starts", "question": "Precious green gemstone, the birthstone of May", "answer": "emerald" },
+    { "letter": "F", "mode": "starts", "question": "Bird of prey whose peregrine species is the fastest animal in a dive", "answer": "falcon" },
+    { "letter": "G", "mode": "starts", "question": "Six-stringed instrument strummed in rock and flamenco", "answer": "guitar" },
+    { "letter": "H", "mode": "starts", "question": "Small mouth-blown reed instrument popular in blues music", "answer": "harmonica" },
+    { "letter": "I", "mode": "starts", "question": "Large tropical lizard with a spiny crest, often kept as a pet", "answer": "iguana" },
+    { "letter": "J", "mode": "starts", "question": "Island nation known as the Land of the Rising Sun", "answer": "Japan" },
+    { "letter": "K", "mode": "starts", "question": "Martial art from Okinawa whose name means empty hand", "answer": "karate" },
+    { "letter": "L", "mode": "starts", "question": "Capital of Portugal, famous for its yellow trams", "answer": "Lisbon" },
+    { "letter": "M", "mode": "starts", "question": "Footrace of just over 26 miles, named after a Greek battle", "answer": "marathon" },
+    { "letter": "N", "mode": "starts", "question": "Sweet liquid from flowers that bees turn into honey", "answer": "nectar" },
+    { "letter": "O", "mode": "starts", "question": "Capital of Norway, where the Nobel Peace Prize is awarded", "answer": "Oslo" },
+    { "letter": "P", "mode": "starts", "question": "Keyboard instrument with 88 keys, hammers and strings", "answer": "piano" },
+    { "letter": "Q", "mode": "starts", "question": "Savory French tart filled with egg, cream and often bacon", "answer": "quiche" },
+    { "letter": "R", "mode": "starts", "question": "Masked North American mammal known for raiding trash cans", "answer": "raccoon" },
+    { "letter": "S", "mode": "starts", "question": "Arachnid with pincers and a venomous stinger on its curved tail", "answer": "scorpion" },
+    { "letter": "T", "mode": "starts", "question": "Brass instrument with three valves, played by Louis Armstrong", "answer": "trumpet" },
+    { "letter": "U", "mode": "starts", "question": "Small South American country that won the first soccer World Cup", "answer": "Uruguay" },
+    { "letter": "V", "mode": "starts", "question": "Capital of Austria, city of waltzes and classical composers", "answer": "Vienna" },
+    { "letter": "W", "mode": "starts", "question": "Wild ancestor of the domestic dog that hunts in packs and howls", "answer": "wolf" },
+    { "letter": "X", "mode": "contains", "question": "Hired car with a meter, traditionally yellow in New York", "answer": "taxi", "alt": ["taxicab"] },
+    { "letter": "Y", "mode": "starts", "question": "Tangy dairy food made by fermenting milk with live cultures", "answer": "yogurt", "alt": ["yoghurt"] },
+    { "letter": "Z", "mode": "starts", "question": "Largest city in Switzerland, a global banking hub", "answer": "Zurich" }
+  ]
+}

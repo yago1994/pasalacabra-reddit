@@ -1,0 +1,31 @@
+{
+  "id": "set-09",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Massive slide of snow rushing down a mountainside", "answer": "avalanche" },
+    { "letter": "B", "mode": "starts", "question": "Black-and-white striped burrowing mammal, famously fearless", "answer": "badger" },
+    { "letter": "C", "mode": "starts", "question": "Flaky crescent-shaped French pastry", "answer": "croissant" },
+    { "letter": "D", "mode": "starts", "question": "Trumpet-shaped yellow flower of early spring, a national symbol of Wales", "answer": "daffodil" },
+    { "letter": "E", "mode": "starts", "question": "Moving staircase found in malls and subway stations", "answer": "escalator" },
+    { "letter": "F", "mode": "starts", "question": "Preserved remains of ancient life found in rock", "answer": "fossil" },
+    { "letter": "G", "mode": "starts", "question": "Slow-moving river of ice that carves valleys", "answer": "glacier" },
+    { "letter": "H", "mode": "starts", "question": "Large stringed instrument plucked by angels in cartoons", "answer": "harp" },
+    { "letter": "I", "mode": "starts", "question": "Colored ring of the eye around the pupil; also a flower", "answer": "iris" },
+    { "letter": "J", "mode": "starts", "question": "Fragrant white flower used in tea and perfume; also an Aladdin princess", "answer": "jasmine" },
+    { "letter": "K", "mode": "starts", "question": "Singing along to backing tracks of popular songs, a Japanese invention", "answer": "karaoke" },
+    { "letter": "L", "mode": "starts", "question": "Paris museum home to the Mona Lisa", "answer": "Louvre" },
+    { "letter": "M", "mode": "starts", "question": "Object with north and south poles that attracts iron", "answer": "magnet" },
+    { "letter": "N", "mode": "starts", "question": "Stealthy covert agent of feudal Japan", "answer": "ninja" },
+    { "letter": "O", "mode": "starts", "question": "Capital city of Canada", "answer": "Ottawa" },
+    { "letter": "P", "mode": "starts", "question": "Bird that fans a shimmering train of eyespot feathers to impress mates", "answer": "peacock" },
+    { "letter": "Q", "mode": "starts", "question": "Musical group of four performers", "answer": "quartet" },
+    { "letter": "R", "mode": "starts", "question": "Arctic deer that pulls Santa's sleigh", "answer": "reindeer" },
+    { "letter": "S", "mode": "starts", "question": "Giant California tree, among the most massive living things on Earth", "answer": "sequoia" },
+    { "letter": "T", "mode": "starts", "question": "Instrument that gathers light to view distant stars; Hubble is a famous one", "answer": "telescope" },
+    { "letter": "U", "mode": "starts", "question": "Standard outfit worn by soldiers, nurses and school pupils", "answer": "uniform" },
+    { "letter": "V", "mode": "starts", "question": "Soft plush fabric with a short dense pile", "answer": "velvet" },
+    { "letter": "W", "mode": "starts", "question": "Wrinkled edible nut said to resemble a tiny brain", "answer": "walnut" },
+    { "letter": "X", "mode": "contains", "question": "Statement that contradicts itself yet may be true", "answer": "paradox" },
+    { "letter": "Y", "mode": "starts", "question": "Alpine singing style that leaps between low and falsetto voices", "answer": "yodel" },
+    { "letter": "Z", "mode": "starts", "question": "Point in the sky directly overhead; the peak of anything", "answer": "zenith" }
+  ]
+}

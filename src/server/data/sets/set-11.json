@@ -1,0 +1,31 @@
+{
+  "id": "set-11",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "American mammal wearing bands of armor; one species rolls into a ball", "answer": "armadillo" },
+    { "letter": "B", "mode": "starts", "question": "Capital of Iraq, on the Tigris River", "answer": "Baghdad" },
+    { "letter": "C", "mode": "starts", "question": "Lizard that changes color and catches insects with a long sticky tongue", "answer": "chameleon" },
+    { "letter": "D", "mode": "starts", "question": "Pocket of dough filled with meat or vegetables, steamed or fried", "answer": "dumpling" },
+    { "letter": "E", "mode": "starts", "question": "Dense, prized black hardwood", "answer": "ebony" },
+    { "letter": "F", "mode": "starts", "question": "Shortest month of the year", "answer": "February" },
+    { "letter": "G", "mode": "starts", "question": "Hungarian paprika-spiced meat stew", "answer": "goulash" },
+    { "letter": "H", "mode": "starts", "question": "Round nut used in praline and popular chocolate spreads", "answer": "hazelnut" },
+    { "letter": "I", "mode": "starts", "question": "Graceful African antelope known for its high leaps", "answer": "impala" },
+    { "letter": "J", "mode": "starts", "question": "Holy city sacred to Judaism, Christianity and Islam", "answer": "Jerusalem" },
+    { "letter": "K", "mode": "starts", "question": "Noble gas that shares its name with Superman's home planet", "answer": "krypton" },
+    { "letter": "L", "mode": "starts", "question": "Electric flash in a storm that comes before the thunder", "answer": "lightning" },
+    { "letter": "M", "mode": "starts", "question": "Ticking device that keeps musicians in tempo", "answer": "metronome" },
+    { "letter": "N", "mode": "starts", "question": "Long strip of pasta or dough, slurped in ramen", "answer": "noodle" },
+    { "letter": "O", "mode": "starts", "question": "Black volcanic glass once used for arrowheads", "answer": "obsidian" },
+    { "letter": "P", "mode": "starts", "question": "Largest and deepest ocean on Earth", "answer": "Pacific" },
+    { "letter": "Q", "mode": "starts", "question": "Isolation period to stop a disease from spreading", "answer": "quarantine" },
+    { "letter": "R", "mode": "starts", "question": "Fragrant needle-leaved herb used on roast lamb and potatoes", "answer": "rosemary" },
+    { "letter": "S", "mode": "starts", "question": "Breathing tube used to swim face-down at the water's surface", "answer": "snorkel" },
+    { "letter": "T", "mode": "starts", "question": "Himalayan region called the Roof of the World, whose capital is Lhasa", "answer": "Tibet" },
+    { "letter": "U", "mode": "starts", "question": "Imagined perfect society; the opposite of a dystopia", "answer": "utopia" },
+    { "letter": "V", "mode": "starts", "question": "Sour liquid made from fermented wine or cider, used in salad dressings", "answer": "vinegar" },
+    { "letter": "W", "mode": "starts", "question": "Tower with rotating sails that grinds grain; Don Quixote fought them", "answer": "windmill" },
+    { "letter": "X", "mode": "contains", "question": "Six-sided shape found in honeycomb cells", "answer": "hexagon" },
+    { "letter": "Y", "mode": "starts", "question": "Spiky-leaved desert plant with tall stalks of white flowers", "answer": "yucca" },
+    { "letter": "Z", "mode": "starts", "question": "Number that means nothing at all", "answer": "zero" }
+  ]
+}

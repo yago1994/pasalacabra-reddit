@@ -1,0 +1,31 @@
+{
+  "id": "set-13",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Broad-snouted reptile lurking in Florida's swamps", "answer": "alligator" },
+    { "letter": "B", "mode": "starts", "question": "Classical dance performed in tutus and pointe shoes; Swan Lake is one", "answer": "ballet" },
+    { "letter": "C", "mode": "starts", "question": "Danish capital guarded by the Little Mermaid statue", "answer": "Copenhagen" },
+    { "letter": "D", "mode": "starts", "question": "Capital of Syria, one of the oldest continuously inhabited cities", "answer": "Damascus" },
+    { "letter": "E", "mode": "starts", "question": "Mexican tortilla rolled around a filling and covered in chili sauce", "answer": "enchilada" },
+    { "letter": "F", "mode": "starts", "question": "Woodwind instrument held sideways and played by blowing across a hole", "answer": "flute" },
+    { "letter": "G", "mode": "starts", "question": "Sacred river of India", "answer": "Ganges" },
+    { "letter": "H", "mode": "starts", "question": "Mythical strongman who performed twelve labors", "answer": "Hercules", "alt": ["Heracles"] },
+    { "letter": "I", "mode": "starts", "question": "Metal with chemical symbol Fe, the main component of steel", "answer": "iron" },
+    { "letter": "J", "mode": "starts", "question": "Wild scavenging dog of Africa and Asia, associated with the god Anubis", "answer": "jackal" },
+    { "letter": "K", "mode": "starts", "question": "Pleated tartan skirt worn by Scottish men", "answer": "kilt" },
+    { "letter": "L", "mode": "starts", "question": "Leafy green vegetable that forms the base of most salads", "answer": "lettuce" },
+    { "letter": "M", "mode": "starts", "question": "Thick dark syrup left over from refining sugar", "answer": "molasses" },
+    { "letter": "N", "mode": "starts", "question": "Person who roams from place to place with no fixed home", "answer": "nomad" },
+    { "letter": "O", "mode": "starts", "question": "Green pod vegetable that thickens gumbo", "answer": "okra" },
+    { "letter": "P", "mode": "starts", "question": "Swinging weight that keeps a grandfather clock ticking", "answer": "pendulum" },
+    { "letter": "Q", "mode": "starts", "question": "Most powerful piece on a chessboard", "answer": "queen" },
+    { "letter": "R", "mode": "starts", "question": "Songbird with a red breast, a classic sign of spring", "answer": "robin" },
+    { "letter": "S", "mode": "starts", "question": "Deep blue precious gemstone, birthstone of September", "answer": "sapphire" },
+    { "letter": "T", "mode": "starts", "question": "Forest mammal with a short flexible trunk, found in South America and Asia", "answer": "tapir" },
+    { "letter": "U", "mode": "starts", "question": "One-wheeled cycle ridden by circus performers", "answer": "unicycle" },
+    { "letter": "V", "mode": "starts", "question": "Blood-drinking creature of legend that fears garlic and sunlight", "answer": "vampire" },
+    { "letter": "W", "mode": "starts", "question": "Ocean giant; the blue species is the largest animal ever known", "answer": "whale" },
+    { "letter": "X", "mode": "contains", "question": "Second-largest US state, known as the Lone Star State", "answer": "Texas" },
+    { "letter": "Y", "mode": "starts", "question": "First national park in the world, home of Old Faithful", "answer": "Yellowstone" },
+    { "letter": "Z", "mode": "starts", "question": "Stepped temple tower of ancient Mesopotamia", "answer": "ziggurat" }
+  ]
+}

@@ -1,75 +1,179 @@
 import './index.css';
 
-import { StrictMode } from 'react';
+import { StrictMode, useEffect, useRef, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { navigateTo } from '@devvit/web/client';
-import { useCounter } from './hooks/useCounter';
+import { cluePrefix, LETTERS, type ClientQuestion } from '../shared/letters';
+import { useGame } from './hooks/useGame';
+import { useSfx } from './hooks/useSfx';
+import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
+import { LetterRing } from './components/LetterRing';
+import { AnswerInput } from './components/AnswerInput';
+import { ResultsPanel } from './components/ResultsPanel';
+import { Leaderboard } from './components/Leaderboard';
+import cabraUrl from './assets/cabra.png';
+
+function formatTime(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
 
 export const App = () => {
-  const { count, username, loading, increment, decrement } = useCounter();
-  return (
-    <div className="flex relative flex-col justify-center items-center min-h-screen gap-4 bg-white dark:bg-gray-900">
-      <img
-        className="object-contain w-1/2 max-w-[250px] mx-auto"
-        src="/snoo.png"
-        alt="Snoo"
-      />
-      <div className="flex flex-col items-center gap-2">
-        <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100">
-          {username ? `Hey ${username} 👋` : ''}
-        </h1>
-        <p className="text-base text-center text-gray-600 dark:text-gray-300">
-          Edit{' '}
-          <span className="bg-[#e5ebee] dark:bg-gray-700 px-1 py-0.5 rounded">
-            src/client/game.tsx
-          </span>{' '}
-          to get started.
-        </p>
-      </div>
-      <div className="flex items-center justify-center mt-5">
+  // useGame needs the callbacks before sfx/tts exist (they depend on
+  // game.muted), so route them through refs updated after every render.
+  const playSfxRef = useRef<(key: 'correct' | 'wrong' | 'pasalacabra') => void>(() => {});
+  const speakRef = useRef<(text: string) => void>(() => {});
+
+  const game = useGame({
+    onCorrect: () => playSfxRef.current('correct'),
+    onWrong: () => playSfxRef.current('wrong'),
+    onPass: () => playSfxRef.current('pasalacabra'),
+    onQuestion: (q: ClientQuestion) =>
+      speakRef.current(`${cluePrefix(q.mode, q.letter)}. ${q.question}`),
+  });
+
+  const sfx = useSfx(game.muted);
+  const tts = useSpeechSynthesis(game.muted);
+
+  useEffect(() => {
+    playSfxRef.current = sfx.play;
+    speakRef.current = tts.speak;
+  });
+
+  const currentQuestion = game.questions[game.currentIndex];
+  const correct = Object.values(game.statusByLetter).filter((s) => s === 'correct').length;
+  const wrong = Object.values(game.statusByLetter).filter((s) => s === 'wrong').length;
+
+  if (game.phase === 'loading') {
+    return (
+      <Shell>
+        <p className="animate-pulse text-white/70">Loading today's ring…</p>
+      </Shell>
+    );
+  }
+
+  if (game.phase === 'error') {
+    return (
+      <Shell>
+        <p className="px-4 text-center text-red-300">Something went wrong: {game.errorMessage}</p>
         <button
-          className="flex items-center justify-center bg-[#d93900] dark:bg-orange-600 text-white w-14 h-14 text-[2.5em] rounded-full cursor-pointer font-mono leading-none transition-colors hover:bg-[#c23300] dark:hover:bg-orange-700"
-          onClick={decrement}
-          disabled={loading}
+          onClick={() => window.location.reload()}
+          className="rounded-xl bg-white/10 px-4 py-2 text-white hover:bg-white/20"
         >
-          -
+          Retry
         </button>
-        <span className="text-[1.8em] font-medium mx-5 min-w-[50px] text-center leading-none text-gray-900 dark:text-white">
-          {loading ? '...' : count}
+      </Shell>
+    );
+  }
+
+  if (game.phase === 'finished' && game.result) {
+    return (
+      <Shell scroll>
+        <ResultsPanel
+          result={game.result}
+          gameNo={game.gameNo}
+          leaderboard={game.leaderboard}
+          username={game.username}
+          isToday={game.isToday}
+          onShare={game.share}
+        />
+      </Shell>
+    );
+  }
+
+  if (game.phase === 'intro') {
+    return (
+      <Shell scroll>
+        <img src={cabraUrl} alt="Pasalacabra goat" className="h-24 w-24 object-contain" />
+        <h1 className="text-3xl font-extrabold text-white">Pasala🐐 #{game.gameNo}</h1>
+        <p className="max-w-sm text-center text-white/80">
+          26 clues, one per letter A to Z. Type each answer before the clock runs out — or say
+          "Pasalacabra" to skip and come back later.
+        </p>
+        {game.username ? (
+          <button
+            onClick={() => void game.start()}
+            disabled={game.submitting}
+            className="rounded-2xl bg-emerald-500 px-10 py-4 text-xl font-extrabold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:opacity-50"
+          >
+            {game.submitting ? 'Starting…' : 'Play'}
+          </button>
+        ) : (
+          <p className="font-semibold text-amber-300">Log in to Reddit to play and rank.</p>
+        )}
+        {game.errorMessage && <p className="text-sm text-red-300">{game.errorMessage}</p>}
+        <div className="mt-4 w-full max-w-md px-4">
+          <h2 className="mb-2 text-lg font-bold text-white">Today's leaderboard</h2>
+          <Leaderboard view={game.leaderboard} myUsername={game.username} />
+        </div>
+      </Shell>
+    );
+  }
+
+  // ---- playing ----
+  return (
+    <div className="flex h-dvh flex-col items-center gap-2 overflow-hidden bg-[var(--bg)] px-3 py-2">
+      <div className="flex w-full max-w-md items-center justify-between text-white">
+        <span className="text-lg font-bold tabular-nums">⏱️ {formatTime(game.secondsLeft)}</span>
+        <span className="text-sm text-white/80">
+          🟢 {correct} · 🔴 {wrong}
         </span>
         <button
-          className="flex items-center justify-center bg-[#d93900] dark:bg-orange-600 text-white w-14 h-14 text-[2.5em] rounded-full cursor-pointer font-mono leading-none transition-colors hover:bg-[#c23300] dark:hover:bg-orange-700"
-          onClick={increment}
-          disabled={loading}
+          onClick={() => void game.toggleMute()}
+          aria-label={game.muted ? 'Unmute sounds' : 'Mute sounds'}
+          className="rounded-lg bg-white/10 px-3 py-1 text-lg hover:bg-white/20"
         >
-          +
+          {game.muted ? '🔇' : '🔊'}
         </button>
       </div>
-      <footer className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 text-[0.8em] text-gray-600 dark:text-gray-400">
-        <button
-          className="cursor-pointer hover:text-gray-900 dark:hover:text-white transition-colors"
-          onClick={() => navigateTo('https://developers.reddit.com/docs')}
-        >
-          Docs
-        </button>
-        <span className="text-gray-300 dark:text-gray-600">|</span>
-        <button
-          className="cursor-pointer hover:text-gray-900 dark:hover:text-white transition-colors"
-          onClick={() => navigateTo('https://www.reddit.com/r/Devvit')}
-        >
-          r/Devvit
-        </button>
-        <span className="text-gray-300 dark:text-gray-600">|</span>
-        <button
-          className="cursor-pointer hover:text-gray-900 dark:hover:text-white transition-colors"
-          onClick={() => navigateTo('https://discord.com/invite/R7yu2wh9Qz')}
-        >
-          Discord
-        </button>
-      </footer>
+
+      <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+        <div className="aspect-square h-full max-h-full w-auto max-w-full">
+          <LetterRing statusByLetter={game.statusByLetter} currentIndex={game.currentIndex} />
+        </div>
+      </div>
+
+      <div className="min-h-[4.5rem] w-full max-w-md rounded-2xl bg-white/10 px-4 py-3 text-center">
+        {game.feedback?.kind === 'wrong' ? (
+          <p className="text-lg font-bold text-red-300">
+            ❌ It was: <span className="text-white">{game.feedback.correctAnswer}</span>
+          </p>
+        ) : game.feedback?.kind === 'correct' ? (
+          <p className="text-lg font-bold text-emerald-300">✅ Correct!</p>
+        ) : game.feedback?.kind === 'passed' ? (
+          <p className="text-lg font-bold text-sky-300">🐐 Passed!</p>
+        ) : currentQuestion ? (
+          <>
+            <p className="text-xs font-bold tracking-wide text-cyan-300 uppercase">
+              {cluePrefix(currentQuestion.mode, LETTERS[game.currentIndex]!)}
+            </p>
+            <p className="text-base leading-snug text-white">{currentQuestion.question}</p>
+          </>
+        ) : null}
+      </div>
+
+      <div className="w-full max-w-md pb-1">
+        <AnswerInput
+          disabled={game.submitting || game.feedback !== null}
+          onGuess={(answer) => void game.guess(answer)}
+          onPass={() => void game.pass()}
+        />
+      </div>
     </div>
   );
 };
+
+function Shell({ children, scroll = false }: { children: ReactNode; scroll?: boolean }) {
+  return (
+    <div
+      className={`flex flex-col items-center gap-4 bg-[var(--bg)] px-4 py-6 ${
+        scroll ? 'h-dvh justify-start overflow-y-auto' : 'min-h-dvh justify-center'
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -1,0 +1,31 @@
+{
+  "id": "set-02",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Coldest continent on Earth, home to the South Pole", "answer": "Antarctica" },
+    { "letter": "B", "mode": "starts", "question": "Insect that transforms from a caterpillar inside a chrysalis", "answer": "butterfly" },
+    { "letter": "C", "mode": "starts", "question": "Board game where the goal is to checkmate the opposing king", "answer": "chess" },
+    { "letter": "D", "mode": "starts", "question": "Scandinavian country whose capital is Copenhagen", "answer": "Denmark" },
+    { "letter": "E", "mode": "starts", "question": "Highest mountain on Earth, on the border of Nepal and China", "answer": "Everest" },
+    { "letter": "F", "mode": "starts", "question": "Nordic country of a thousand lakes, whose capital is Helsinki", "answer": "Finland" },
+    { "letter": "G", "mode": "starts", "question": "Traditional flat-bottomed boat rowed through the canals of Venice", "answer": "gondola" },
+    { "letter": "H", "mode": "starts", "question": "US state made up of Pacific islands, famous for surfing and hula", "answer": "Hawaii" },
+    { "letter": "I", "mode": "starts", "question": "Boot-shaped European country famous for pasta and pizza", "answer": "Italy" },
+    { "letter": "J", "mode": "starts", "question": "Largest planet in the solar system, with a Great Red Spot", "answer": "Jupiter" },
+    { "letter": "K", "mode": "starts", "question": "Tree-dwelling Australian marsupial that eats eucalyptus leaves", "answer": "koala" },
+    { "letter": "L", "mode": "starts", "question": "Coastal tower with a bright beacon that warns ships away from rocks", "answer": "lighthouse" },
+    { "letter": "M", "mode": "starts", "question": "Planet closest to the sun, also the name of a Roman messenger god", "answer": "Mercury" },
+    { "letter": "N", "mode": "starts", "question": "Arctic whale whose long spiral tusk is actually a tooth", "answer": "narwhal" },
+    { "letter": "O", "mode": "starts", "question": "Japanese art of folding paper into shapes like cranes", "answer": "origami" },
+    { "letter": "P", "mode": "starts", "question": "Ancient Egyptian monument with a square base and triangular sides", "answer": "pyramid" },
+    { "letter": "Q", "mode": "starts", "question": "Small smiling marsupial from Rottnest Island in Australia", "answer": "quokka" },
+    { "letter": "R", "mode": "starts", "question": "European capital city home to the Colosseum and the Trevi Fountain", "answer": "Rome" },
+    { "letter": "S", "mode": "starts", "question": "Pink-fleshed fish that swims upstream to spawn", "answer": "salmon" },
+    { "letter": "T", "mode": "starts", "question": "Capital of Japan, one of the most populous cities in the world", "answer": "Tokyo" },
+    { "letter": "U", "mode": "starts", "question": "Mythical horse-like creature with a single spiral horn", "answer": "unicorn" },
+    { "letter": "V", "mode": "starts", "question": "String instrument played with a bow and held under the chin", "answer": "violin" },
+    { "letter": "W", "mode": "starts", "question": "Large green-rinded summer fruit with sweet red flesh and black seeds", "answer": "watermelon" },
+    { "letter": "X", "mode": "contains", "question": "Brass-bodied woodwind instrument central to jazz music", "answer": "saxophone" },
+    { "letter": "Y", "mode": "starts", "question": "Long-haired ox of the Himalayas used to carry heavy loads", "answer": "yak" },
+    { "letter": "Z", "mode": "starts", "question": "Metallic element with symbol Zn, used to galvanize steel", "answer": "zinc" }
+  ]
+}

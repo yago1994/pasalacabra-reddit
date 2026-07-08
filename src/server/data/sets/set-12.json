@@ -1,0 +1,31 @@
+{
+  "id": "set-12",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Greek capital watched over by the Parthenon", "answer": "Athens" },
+    { "letter": "B", "mode": "starts", "question": "Crustacean that cements itself to ship hulls and whales", "answer": "barnacle" },
+    { "letter": "C", "mode": "starts", "question": "Deep-voiced string instrument played sitting down, held between the knees", "answer": "cello" },
+    { "letter": "D", "mode": "starts", "question": "Percussion instrument struck with sticks; a kit of them anchors a rock band", "answer": "drum" },
+    { "letter": "E", "mode": "starts", "question": "Capital of Scotland, famous for its castle and its festival", "answer": "Edinburgh" },
+    { "letter": "F", "mode": "starts", "question": "Slinky domesticated relative of the weasel", "answer": "ferret" },
+    { "letter": "G", "mode": "starts", "question": "Mexican dip mashed from avocados with lime and onion", "answer": "guacamole" },
+    { "letter": "H", "mode": "starts", "question": "Hanging bed of netting or cloth strung between two trees", "answer": "hammock" },
+    { "letter": "I", "mode": "starts", "question": "Southeast Asian nation of more than 17,000 islands, including Java and Bali", "answer": "Indonesia" },
+    { "letter": "J", "mode": "starts", "question": "Evergreen shrub whose berries flavor gin", "answer": "juniper" },
+    { "letter": "K", "mode": "starts", "question": "East African country famous for safaris and long-distance runners", "answer": "Kenya" },
+    { "letter": "L", "mode": "starts", "question": "Chewy black candy flavored by a sweet root", "answer": "licorice", "alt": ["liquorice"] },
+    { "letter": "M", "mode": "starts", "question": "Large island nation off Africa's east coast, home to lemurs", "answer": "Madagascar" },
+    { "letter": "N", "mode": "starts", "question": "US five-cent coin; also a silvery metal", "answer": "nickel" },
+    { "letter": "O", "mode": "starts", "question": "Beaten eggs cooked flat in a pan and folded over a filling", "answer": "omelet", "alt": ["omelette"] },
+    { "letter": "P", "mode": "starts", "question": "Curly green herb sprinkled on dishes as a garnish", "answer": "parsley" },
+    { "letter": "Q", "mode": "starts", "question": "Result you get when you divide one number by another", "answer": "quotient" },
+    { "letter": "R", "mode": "starts", "question": "Casino game with a spinning wheel and a bouncing ball", "answer": "roulette" },
+    { "letter": "S", "mode": "starts", "question": "Instrument a doctor uses to listen to your heart and lungs", "answer": "stethoscope" },
+    { "letter": "T", "mode": "starts", "question": "Blue-green gemstone prized in Native American jewelry; also the color", "answer": "turquoise" },
+    { "letter": "U", "mode": "starts", "question": "Largest country entirely within Europe, capital Kyiv", "answer": "Ukraine" },
+    { "letter": "V", "mode": "starts", "question": "Electrical potential difference, measured in units named after an Italian physicist", "answer": "voltage" },
+    { "letter": "W", "mode": "starts", "question": "Climbing vine that drips cascades of purple flowers", "answer": "wisteria" },
+    { "letter": "X", "mode": "starts", "question": "Percussion instrument of wooden bars struck with mallets", "answer": "xylophone" },
+    { "letter": "Y", "mode": "starts", "question": "Longest river in Asia, flowing through China", "answer": "Yangtze" },
+    { "letter": "Z", "mode": "starts", "question": "Toothed fastener that opens and closes jackets and bags", "answer": "zipper" }
+  ]
+}

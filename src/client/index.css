@@ -1,1 +1,17 @@
 @import 'tailwindcss';
+
+:root {
+  --bg: #0b0f1a;
+  --letter-default: #4f8dff;
+  --letter-current: #00d4ff;
+  --letter-correct: #2bb673;
+  --letter-wrong: #ff4d4d;
+  --letter-passed: #4f8dff;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+}

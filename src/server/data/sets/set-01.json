@@ -1,0 +1,31 @@
+{
+  "id": "set-01",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Green fruit with a large pit, the key ingredient in guacamole", "answer": "avocado" },
+    { "letter": "B", "mode": "starts", "question": "Largest country in South America, famous for carnival and soccer", "answer": "Brazil" },
+    { "letter": "C", "mode": "starts", "question": "Desert animal with humps that stores fat for long journeys", "answer": "camel" },
+    { "letter": "D", "mode": "starts", "question": "Intelligent marine mammal known for its playful clicks and whistles", "answer": "dolphin" },
+    { "letter": "E", "mode": "starts", "question": "Largest living land animal, with a trunk and tusks", "answer": "elephant" },
+    { "letter": "F", "mode": "starts", "question": "Pink wading bird that often stands on one leg", "answer": "flamingo" },
+    { "letter": "G", "mode": "starts", "question": "Tallest living land animal, known for its very long neck", "answer": "giraffe" },
+    { "letter": "H", "mode": "starts", "question": "Large African river mammal whose name means river horse", "answer": "hippopotamus", "alt": ["hippo"] },
+    { "letter": "I", "mode": "starts", "question": "Dome-shaped shelter built from blocks of snow", "answer": "igloo" },
+    { "letter": "J", "mode": "starts", "question": "Large spotted big cat of the Americas", "answer": "jaguar" },
+    { "letter": "K", "mode": "starts", "question": "Australian marsupial that carries its young in a pouch and moves by hopping", "answer": "kangaroo" },
+    { "letter": "L", "mode": "starts", "question": "Molten rock that erupts and flows down a mountainside", "answer": "lava" },
+    { "letter": "M", "mode": "starts", "question": "Sweet tropical stone fruit, the national fruit of India", "answer": "mango" },
+    { "letter": "N", "mode": "starts", "question": "River that flows through Egypt, the longest in Africa", "answer": "Nile" },
+    { "letter": "O", "mode": "starts", "question": "Sea creature with eight arms and three hearts", "answer": "octopus" },
+    { "letter": "P", "mode": "starts", "question": "Flightless black-and-white bird that thrives in Antarctica", "answer": "penguin" },
+    { "letter": "Q", "mode": "starts", "question": "Very common hard mineral used in watches to keep time", "answer": "quartz" },
+    { "letter": "R", "mode": "starts", "question": "Colorful arc that appears in the sky when sunlight passes through raindrops", "answer": "rainbow" },
+    { "letter": "S", "mode": "starts", "question": "Largest hot desert in the world, covering much of northern Africa", "answer": "Sahara" },
+    { "letter": "T", "mode": "starts", "question": "Violently rotating column of air that touches the ground, common in the US Midwest", "answer": "tornado" },
+    { "letter": "U", "mode": "starts", "question": "Handheld canopy that keeps you dry in the rain", "answer": "umbrella" },
+    { "letter": "V", "mode": "starts", "question": "Mountain with a crater that can erupt with ash and molten rock", "answer": "volcano" },
+    { "letter": "W", "mode": "starts", "question": "Large Arctic marine mammal with long tusks and whiskers", "answer": "walrus" },
+    { "letter": "X", "mode": "contains", "question": "Gas that makes up about a fifth of the air, essential for breathing", "answer": "oxygen" },
+    { "letter": "Y", "mode": "starts", "question": "Ancient Indian practice of postures, breathing and meditation", "answer": "yoga" },
+    { "letter": "Z", "mode": "starts", "question": "African animal with black and white stripes", "answer": "zebra" }
+  ]
+}

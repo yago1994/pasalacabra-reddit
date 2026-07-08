@@ -1,0 +1,31 @@
+{
+  "id": "set-03",
+  "questions": [
+    { "letter": "A", "mode": "starts", "question": "Heavy metal device dropped from a ship to keep it from drifting", "answer": "anchor" },
+    { "letter": "B", "mode": "starts", "question": "Stringed instrument with a round body, common in bluegrass music", "answer": "banjo" },
+    { "letter": "C", "mode": "starts", "question": "Second-largest country in the world by area, with a maple leaf on its flag", "answer": "Canada" },
+    { "letter": "D", "mode": "starts", "question": "Hardest natural material, a gemstone made of pure carbon", "answer": "diamond" },
+    { "letter": "E", "mode": "starts", "question": "Event in which the moon blocks the sun, or Earth's shadow darkens the moon", "answer": "eclipse" },
+    { "letter": "F", "mode": "starts", "question": "Narrow sea inlet between steep cliffs, carved by glaciers", "answer": "fjord" },
+    { "letter": "G", "mode": "starts", "question": "Hard speckled igneous rock often used for kitchen countertops", "answer": "granite" },
+    { "letter": "H", "mode": "starts", "question": "Powerful tropical storm with a calm eye at its center", "answer": "hurricane" },
+    { "letter": "I", "mode": "starts", "question": "Huge floating chunk of frozen water; one famously sank the Titanic", "answer": "iceberg" },
+    { "letter": "J", "mode": "starts", "question": "Music genre born in New Orleans, known for improvisation and swing", "answer": "jazz" },
+    { "letter": "K", "mode": "starts", "question": "Flightless New Zealand bird, also a fuzzy brown fruit", "answer": "kiwi" },
+    { "letter": "L", "mode": "starts", "question": "South American pack animal related to the alpaca, known to spit", "answer": "llama" },
+    { "letter": "M", "mode": "starts", "question": "Artwork made from many small pieces of colored tile or glass", "answer": "mosaic" },
+    { "letter": "N", "mode": "starts", "question": "Scandinavian country whose capital is Oslo", "answer": "Norway" },
+    { "letter": "O", "mode": "starts", "question": "Fertile spot in a desert where water is found", "answer": "oasis" },
+    { "letter": "P", "mode": "starts", "question": "Capital of France, home to the Eiffel Tower", "answer": "Paris" },
+    { "letter": "Q", "mode": "starts", "question": "Protein-rich Andean grain pronounced keen-wah", "answer": "quinoa" },
+    { "letter": "R", "mode": "starts", "question": "Large thick-skinned animal with one or two horns on its snout", "answer": "rhinoceros", "alt": ["rhino"] },
+    { "letter": "S", "mode": "starts", "question": "Planet famous for its spectacular rings", "answer": "Saturn" },
+    { "letter": "T", "mode": "starts", "question": "Cup-shaped spring flower that the Netherlands is famous for", "answer": "tulip" },
+    { "letter": "U", "mode": "starts", "question": "Radioactive element used as fuel in nuclear power plants", "answer": "uranium" },
+    { "letter": "V", "mode": "starts", "question": "Second planet from the sun, also the Roman goddess of love", "answer": "Venus" },
+    { "letter": "W", "mode": "starts", "question": "Grid-patterned breakfast treat cooked in a hinged iron", "answer": "waffle" },
+    { "letter": "X", "mode": "contains", "question": "Vast system of billions of stars; ours is the Milky Way", "answer": "galaxy" },
+    { "letter": "Y", "mode": "starts", "question": "Luxury sailing or motor vessel used for pleasure cruising", "answer": "yacht" },
+    { "letter": "Z", "mode": "starts", "question": "King of the Greek gods, wielder of the thunderbolt", "answer": "Zeus" }
+  ]
+}
