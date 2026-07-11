@@ -1,10 +1,11 @@
-// Fetches a pre-generated daily question set from a remote raw-GitHub file.
+// Fetches a pre-generated daily question set from an S3-hosted JSON file.
 // SERVER-SIDE ONLY — the fetched JSON contains answers.
 //
 // Generation happens entirely in GitHub Actions (see the sibling `pasalacabra`
-// repo). This module just pulls `<base>/daily/<date>.json`, validates it
-// defensively, and hands back a SetDefinition. It never falls back to a static
-// set — a missing/invalid file throws so the failure is visible, not silent.
+// repo), which uploads the result to S3. This module just pulls
+// `<base>/daily/<date>.json`, validates it defensively, and hands back a
+// SetDefinition. It never falls back to a static set — a missing/invalid file
+// throws so the failure is visible, not silent.
 import { settings } from '@devvit/web/server';
 import { LETTERS } from '../../shared/letters';
 import type { QA } from '../../shared/letters';
