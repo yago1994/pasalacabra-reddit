@@ -92,7 +92,10 @@ export const App = () => {
   }, [countdown]);
 
   const handlePlayClick = async () => {
-    await sfx.ensureReady(); // unlock audio now, inside the user gesture
+    // Both must happen inside this user gesture: Web Audio unlock, and the
+    // speech-engine prime that iOS requires before speak() will make sound.
+    tts.warmUp();
+    await sfx.ensureReady();
     setCountdown(3);
   };
 

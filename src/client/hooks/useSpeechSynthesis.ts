@@ -3,123 +3,154 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const SPEECH_RATE = 0.82;
 /** Safety cap in case an utterance's `onend` never fires (some webviews are flaky). */
 const MAX_SPEECH_MS = 15000;
+/**
+ * How long to wait for `onstart` before deciding the engine is broken. iOS
+ * WKWebView (the Reddit iOS app) exposes speechSynthesis but frequently
+ * produces no audio and fires no events; without a start deadline the UI would
+ * sit on "Reading the clue…" until the end-watchdog fires seconds later.
+ */
+const START_GRACE_MS = 1500;
 
 /**
  * Experimental clue read-aloud via the browser-built-in speechSynthesis.
  *
- * `'speechSynthesis' in window` alone is not a reliable feature check: many
- * embedded WebViews (notably Android's, which is what Reddit's mobile app
- * renders this game in) expose the API but have no actual TTS engine wired
- * in — speak() "succeeds" (fires onend) but no audio is ever produced. The
- * one signal that reliably correlates with a working engine is a non-empty
- * voice list, so `supported` additionally requires that.
+ * Detection strategy: we don't try to predict support up front (getVoices()
+ * lies on Android; the API exists but is dead on iOS WKWebView). Instead we
+ * attempt speech and watch for `onstart`:
+ *  - if it fires, the engine works — remember that and use a length-scaled
+ *    end-watchdog as a safety net;
+ *  - if it doesn't fire within START_GRACE_MS, mark speech broken, bail
+ *    immediately (reveal the clue, unlock input), and skip the attempt (and
+ *    its lock) for every subsequent clue.
+ *
+ * `warmUp()` primes the engine from inside a user gesture, which iOS requires
+ * before speak() will do anything.
  */
 export function useSpeechSynthesis(muted: boolean) {
-  // NOTE: we intentionally do NOT gate on getVoices().length. Many Android
-  // WebViews (which is what the Reddit app renders this game in) report an
-  // empty voice list even though TTS works fine — gating on it silently
-  // disabled a working read-aloud. Instead we always attempt speech where the
-  // API exists and rely on the watchdog below to clear `isSpeaking` if a
-  // broken engine never fires `onend`.
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window;
-  const apiPresent = supported;
   const [isSpeaking, setIsSpeaking] = useState(false);
   const mutedRef = useRef(muted);
-  const timeoutRef = useRef<number | null>(null);
+  const endTimerRef = useRef<number | null>(null);
+  const startTimerRef = useRef<number | null>(null);
+  // null = unknown, true = confirmed working, false = confirmed dead.
+  const speechWorksRef = useRef<boolean | null>(null);
 
   useEffect(() => {
     mutedRef.current = muted;
   }, [muted]);
 
-  const clearWatchdog = useCallback(() => {
-    if (timeoutRef.current !== null) {
-      window.clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+  const clearTimers = useCallback(() => {
+    if (endTimerRef.current !== null) {
+      window.clearTimeout(endTimerRef.current);
+      endTimerRef.current = null;
+    }
+    if (startTimerRef.current !== null) {
+      window.clearTimeout(startTimerRef.current);
+      startTimerRef.current = null;
     }
   }, []);
 
   const cancel = useCallback(() => {
-    clearWatchdog();
-    if (apiPresent) window.speechSynthesis.cancel();
+    clearTimers();
+    if (supported) window.speechSynthesis.cancel();
     setIsSpeaking(false);
-  }, [apiPresent, clearWatchdog]);
+  }, [supported, clearTimers]);
 
-  const speak = useCallback(
-    (prefix: string, question: string) => {
-      if (!supported || mutedRef.current) {
-        setIsSpeaking(false);
-        return;
-      }
-      window.speechSynthesis.cancel();
-      clearWatchdog();
-      setIsSpeaking(true);
-
-      const finish = () => {
-        clearWatchdog();
-        setIsSpeaking(false);
-      };
-
-      try {
-        const u1 = new SpeechSynthesisUtterance(prefix);
-        const u2 = new SpeechSynthesisUtterance(question);
-        for (const u of [u1, u2]) {
-          u.lang = 'en-US';
-          u.rate = SPEECH_RATE;
-          u.pitch = 1;
-        }
-        u2.onend = finish;
-        u2.onerror = finish;
-        // Scale the watchdog to how much there is to say, so a genuinely
-        // stuck utterance is caught faster than a flat worst-case timeout.
-        const estimatedMs = ((prefix.length + question.length) / SPEECH_RATE) * 90;
-        timeoutRef.current = window.setTimeout(finish, Math.min(MAX_SPEECH_MS, Math.max(4000, estimatedMs)));
-        window.speechSynthesis.speak(u1);
-        window.speechSynthesis.speak(u2);
-      } catch {
-        finish();
-      }
-    },
-    [supported, clearWatchdog]
-  );
-
-  /**
-   * Speak a single line and resolve when it finishes (or immediately if TTS
-   * isn't usable). Used for the wrong-answer read-aloud, where the caller
-   * wants to hold the reveal until speech completes.
-   */
-  const speakLine = useCallback(
-    (text: string): Promise<void> => {
+  /** Speak the given lines in order; resolve when done, bailed, or skipped. */
+  const run = useCallback(
+    (lines: string[]): Promise<void> => {
       if (!supported || mutedRef.current) return Promise.resolve();
+      // Known-dead engine: don't lock the UI, just reveal immediately.
+      if (speechWorksRef.current === false) return Promise.resolve();
+
       window.speechSynthesis.cancel();
-      clearWatchdog();
+      clearTimers();
       setIsSpeaking(true);
 
       return new Promise<void>((resolve) => {
+        let started = false;
         const finish = () => {
-          clearWatchdog();
+          clearTimers();
           setIsSpeaking(false);
           resolve();
         };
+
         try {
-          const u = new SpeechSynthesisUtterance(text);
-          u.lang = 'en-US';
-          u.rate = SPEECH_RATE;
-          u.pitch = 1;
-          u.onend = finish;
-          u.onerror = finish;
-          const estimatedMs = (text.length / SPEECH_RATE) * 90;
-          timeoutRef.current = window.setTimeout(
-            finish,
-            Math.min(MAX_SPEECH_MS, Math.max(4000, estimatedMs))
-          );
-          window.speechSynthesis.speak(u);
+          const utterances = lines.map((text) => {
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'en-US';
+            u.rate = SPEECH_RATE;
+            u.pitch = 1;
+            return u;
+          });
+          const first = utterances[0]!;
+          const last = utterances[utterances.length - 1]!;
+
+          first.onstart = () => {
+            started = true;
+            speechWorksRef.current = true;
+            if (startTimerRef.current !== null) {
+              window.clearTimeout(startTimerRef.current);
+              startTimerRef.current = null;
+            }
+            // Now that speech is really underway, arm a length-scaled end
+            // watchdog in case onend never arrives.
+            const totalLen = lines.join(' ').length;
+            const estMs = (totalLen / SPEECH_RATE) * 90;
+            endTimerRef.current = window.setTimeout(
+              finish,
+              Math.min(MAX_SPEECH_MS, Math.max(4000, estMs))
+            );
+          };
+          last.onend = finish;
+          last.onerror = finish;
+
+          startTimerRef.current = window.setTimeout(() => {
+            if (!started) {
+              speechWorksRef.current = false; // give up on TTS for the rest of the session
+              try {
+                window.speechSynthesis.cancel();
+              } catch {
+                // ignore
+              }
+              finish();
+            }
+          }, START_GRACE_MS);
+
+          for (const u of utterances) window.speechSynthesis.speak(u);
         } catch {
           finish();
         }
       });
     },
-    [supported, clearWatchdog]
+    [supported, clearTimers]
   );
+
+  const speak = useCallback(
+    (prefix: string, question: string) => {
+      void run([prefix, question]);
+    },
+    [run]
+  );
+
+  /** Speak a single line; resolve when it finishes. Used for the wrong-answer reveal. */
+  const speakLine = useCallback((text: string): Promise<void> => run([text]), [run]);
+
+  /**
+   * Prime the speech engine from within a user gesture (iOS requires this
+   * before speak() outside a gesture will produce audio). Speaks a silent
+   * blank so the user hears nothing.
+   */
+  const warmUp = useCallback(() => {
+    if (!supported) return;
+    try {
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      window.speechSynthesis.speak(u);
+    } catch {
+      // ignore
+    }
+  }, [supported]);
 
   // Stop speaking if muted mid-utterance (deferred a tick so we don't call
   // setState synchronously inside the effect body).
@@ -131,7 +162,7 @@ export function useSpeechSynthesis(muted: boolean) {
 
   // Stop speaking when the post is scrolled away / backgrounded.
   useEffect(() => {
-    if (!apiPresent) return;
+    if (!supported) return;
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') cancel();
     };
@@ -141,7 +172,7 @@ export function useSpeechSynthesis(muted: boolean) {
       cancel();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiPresent]);
+  }, [supported]);
 
-  return { supported, isSpeaking, speak, speakLine, cancel };
+  return { supported, isSpeaking, speak, speakLine, warmUp, cancel };
 }
