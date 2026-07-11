@@ -25,6 +25,21 @@
       "asUser": [
         "SUBMIT_COMMENT"
       ]
+    },
+    "http": {
+      "enable": true,
+      "domains": [
+        "raw.githubusercontent.com"
+      ]
+    }
+  },
+  "settings": {
+    "global": {
+      "daily-sets-base-url": {
+        "type": "string",
+        "label": "Daily sets base URL (raw GitHub). Leave empty to use the bundled dev sets.",
+        "helpText": "e.g. https://raw.githubusercontent.com/yago1994/pasalacabra/main — the app fetches <base>/daily/<YYYY-MM-DD>.json. When empty, the app rotates the bundled static sets (local/dev)."
+      }
     }
   },
   "scheduler": {
