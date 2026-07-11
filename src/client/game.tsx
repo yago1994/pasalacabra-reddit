@@ -1,6 +1,6 @@
 import './index.css';
 
-import { StrictMode, useEffect, useRef, type ReactNode } from 'react';
+import { StrictMode, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { cluePrefix, LETTERS, type ClientQuestion } from '../shared/letters';
 import { useGame } from './hooks/useGame';
@@ -38,6 +38,30 @@ export const App = () => {
     playSfxRef.current = sfx.play;
     speakRef.current = tts.speak;
   });
+
+  // 3-2-1 countdown before the timer/first clue actually start.
+  const [countdown, setCountdown] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown === 0) {
+      sfx.playTone(880, 220);
+      const t = window.setTimeout(() => {
+        setCountdown(null);
+        void game.start();
+      }, 400);
+      return () => window.clearTimeout(t);
+    }
+    sfx.playTone(440, 140);
+    const t = window.setTimeout(() => setCountdown((c) => (c === null ? null : c - 1)), 700);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countdown]);
+
+  const handlePlayClick = async () => {
+    await sfx.ensureReady(); // unlock audio now, inside the user gesture
+    setCountdown(3);
+  };
 
   const currentQuestion = game.questions[game.currentIndex];
   const correct = Object.values(game.statusByLetter).filter((s) => s === 'correct').length;
@@ -81,6 +105,16 @@ export const App = () => {
   }
 
   if (game.phase === 'intro') {
+    if (countdown !== null) {
+      return (
+        <Shell>
+          <p className="text-9xl font-black text-white tabular-nums">
+            {countdown === 0 ? 'Go!' : countdown}
+          </p>
+        </Shell>
+      );
+    }
+
     return (
       <Shell scroll>
         <img src={cabraUrl} alt="Pasalacabra goat" className="h-24 w-24 object-contain" />
@@ -90,13 +124,16 @@ export const App = () => {
           "Pasalacabra" to skip and come back later.
         </p>
         {game.username ? (
-          <button
-            onClick={() => void game.start()}
-            disabled={game.submitting}
-            className="rounded-2xl bg-emerald-500 px-10 py-4 text-xl font-extrabold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:opacity-50"
-          >
-            {game.submitting ? 'Starting…' : 'Play'}
-          </button>
+          <>
+            <button
+              onClick={() => void handlePlayClick()}
+              disabled={game.submitting}
+              className="rounded-2xl bg-emerald-500 px-10 py-4 text-xl font-extrabold text-white shadow-lg transition-colors hover:bg-emerald-400 disabled:opacity-50"
+            >
+              {game.submitting ? 'Starting…' : 'Play'}
+            </button>
+            <p className="text-xs text-white/50">🔊 Turn up your volume — this game has sound</p>
+          </>
         ) : (
           <p className="font-semibold text-amber-300">Log in to Reddit to play and rank.</p>
         )}

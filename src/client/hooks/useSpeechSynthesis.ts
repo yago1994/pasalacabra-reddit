@@ -6,22 +6,42 @@ const MAX_SPEECH_MS = 15000;
 
 /**
  * Experimental clue read-aloud via the browser-built-in speechSynthesis.
- * Feature-detected: on webviews without support this is a silent no-op and
- * `isSpeaking` never becomes true, so callers never gate on it.
  *
- * The prefix ("Starts with G") and the clue are spoken as two separate
- * utterances — queuing them back to back gives a natural pause between the
- * two without relying on SSML (which plain speechSynthesis doesn't support).
+ * `'speechSynthesis' in window` alone is not a reliable feature check: many
+ * embedded WebViews (notably Android's, which is what Reddit's mobile app
+ * renders this game in) expose the API but have no actual TTS engine wired
+ * in — speak() "succeeds" (fires onend) but no audio is ever produced. The
+ * one signal that reliably correlates with a working engine is a non-empty
+ * voice list, so `supported` additionally requires that.
  */
 export function useSpeechSynthesis(muted: boolean) {
-  const supported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+  const apiPresent = typeof window !== 'undefined' && 'speechSynthesis' in window;
+  const [hasVoices, setHasVoices] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const mutedRef = useRef(muted);
   const timeoutRef = useRef<number | null>(null);
 
+  const supported = apiPresent && hasVoices;
+
   useEffect(() => {
     mutedRef.current = muted;
   }, [muted]);
+
+  // Voice lists populate asynchronously in some browsers; broken WebViews
+  // never populate one at all, which is exactly the case we want to detect.
+  useEffect(() => {
+    if (!apiPresent) return;
+    const check = () => {
+      if (window.speechSynthesis.getVoices().length > 0) setHasVoices(true);
+    };
+    check();
+    window.speechSynthesis.addEventListener('voiceschanged', check);
+    const timeout = window.setTimeout(check, 800);
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', check);
+      window.clearTimeout(timeout);
+    };
+  }, [apiPresent]);
 
   const clearWatchdog = useCallback(() => {
     if (timeoutRef.current !== null) {
@@ -32,9 +52,9 @@ export function useSpeechSynthesis(muted: boolean) {
 
   const cancel = useCallback(() => {
     clearWatchdog();
-    if (supported) window.speechSynthesis.cancel();
+    if (apiPresent) window.speechSynthesis.cancel();
     setIsSpeaking(false);
-  }, [supported, clearWatchdog]);
+  }, [apiPresent, clearWatchdog]);
 
   const speak = useCallback(
     (prefix: string, question: string) => {
@@ -61,7 +81,10 @@ export function useSpeechSynthesis(muted: boolean) {
         }
         u2.onend = finish;
         u2.onerror = finish;
-        timeoutRef.current = window.setTimeout(finish, MAX_SPEECH_MS);
+        // Scale the watchdog to how much there is to say, so a genuinely
+        // stuck utterance is caught faster than a flat worst-case timeout.
+        const estimatedMs = ((prefix.length + question.length) / SPEECH_RATE) * 90;
+        timeoutRef.current = window.setTimeout(finish, Math.min(MAX_SPEECH_MS, Math.max(4000, estimatedMs)));
         window.speechSynthesis.speak(u1);
         window.speechSynthesis.speak(u2);
       } catch {
@@ -81,7 +104,7 @@ export function useSpeechSynthesis(muted: boolean) {
 
   // Stop speaking when the post is scrolled away / backgrounded.
   useEffect(() => {
-    if (!supported) return;
+    if (!apiPresent) return;
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') cancel();
     };
@@ -91,7 +114,7 @@ export function useSpeechSynthesis(muted: boolean) {
       cancel();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supported]);
+  }, [apiPresent]);
 
   return { supported, isSpeaking, speak, cancel };
 }

@@ -127,5 +127,39 @@ export function useSfx(muted: boolean) {
     [getCtx]
   );
 
-  return { play, ensureReady };
+  const playTone = useCallback(
+    (frequencyHz: number, durationMs: number) => {
+      if (mutedRef.current) return;
+      const ctx = getCtx();
+      if (!ctx) return;
+
+      const start = () => {
+        try {
+          const t0 = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(frequencyHz, t0);
+          gain.gain.setValueAtTime(0.0001, t0);
+          gain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t0 + durationMs / 1000);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t0);
+          osc.stop(t0 + durationMs / 1000 + 0.02);
+        } catch {
+          // ignore
+        }
+      };
+
+      if (ctx.state !== 'running') {
+        void ctx.resume().then(start).catch(start);
+        return;
+      }
+      start();
+    },
+    [getCtx]
+  );
+
+  return { play, playTone, ensureReady };
 }
