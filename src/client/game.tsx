@@ -22,14 +22,13 @@ export const App = () => {
   // useGame needs the callbacks before sfx/tts exist (they depend on
   // game.muted), so route them through refs updated after every render.
   const playSfxRef = useRef<(key: 'correct' | 'wrong' | 'pasalacabra') => void>(() => {});
-  const speakRef = useRef<(text: string) => void>(() => {});
+  const speakRef = useRef<(prefix: string, question: string) => void>(() => {});
 
   const game = useGame({
     onCorrect: () => playSfxRef.current('correct'),
     onWrong: () => playSfxRef.current('wrong'),
     onPass: () => playSfxRef.current('pasalacabra'),
-    onQuestion: (q: ClientQuestion) =>
-      speakRef.current(`${cluePrefix(q.mode, q.letter)}. ${q.question}`),
+    onQuestion: (q: ClientQuestion) => speakRef.current(cluePrefix(q.mode, q.letter), q.question),
   });
 
   const sfx = useSfx(game.muted);
@@ -142,6 +141,8 @@ export const App = () => {
           <p className="text-lg font-bold text-emerald-300">✅ Correct!</p>
         ) : game.feedback?.kind === 'passed' ? (
           <p className="text-lg font-bold text-sky-300">🐐 Passed!</p>
+        ) : tts.isSpeaking ? (
+          <p className="text-sm italic text-white/50">🔊 Reading the clue…</p>
         ) : currentQuestion ? (
           <>
             <p className="text-xs font-bold tracking-wide text-cyan-300 uppercase">
@@ -154,7 +155,7 @@ export const App = () => {
 
       <div className="w-full max-w-md pb-1">
         <AnswerInput
-          disabled={game.submitting || game.feedback !== null}
+          disabled={game.submitting || game.feedback !== null || tts.isSpeaking}
           onGuess={(answer) => void game.guess(answer)}
           onPass={() => void game.pass()}
         />

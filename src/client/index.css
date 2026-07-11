@@ -15,3 +15,27 @@ body {
   margin: 0;
   background: var(--bg);
 }
+
+.goat-confetti {
+  position: fixed;
+  top: -50px;
+  font-size: 40px;
+  pointer-events: none;
+  z-index: 3000;
+  opacity: 1;
+  animation: goat-confetti-fall 3s linear forwards;
+}
+
+@keyframes goat-confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(calc(100vh + 50px)) rotate(1080deg);
+    opacity: 0;
+  }
+}

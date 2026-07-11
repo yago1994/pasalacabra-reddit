@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   LETTERS,
   REVEAL_PAUSE_MS,
@@ -172,7 +172,10 @@ export function useGame(callbacks: {
   }, [data.phase, data.secondsLeft, finish]);
 
   // ---- announce current question ----
-  useEffect(() => {
+  // useLayoutEffect (not useEffect) so a synchronous speak() call — which
+  // flips the caller's `isSpeaking` state — commits in the same paint as the
+  // new currentIndex, instead of flashing the clue text for one frame first.
+  useLayoutEffect(() => {
     if (data.phase !== 'playing') return;
     const q = data.questions[data.currentIndex];
     if (q) callbacksRef.current.onQuestion(q);

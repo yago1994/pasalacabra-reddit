@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { GameResult, LeaderboardView, ShareResponse } from '../../shared/api';
-import { LetterRing } from './LetterRing';
 import { Leaderboard } from './Leaderboard';
+import { GoatConfetti } from './GoatConfetti';
+import { canvasToPngBlob, renderResultsSnapshot } from '../game/resultsSnapshot';
 
 type Props = {
   result: GameResult;
@@ -12,55 +13,89 @@ type Props = {
   onShare: () => Promise<ShareResponse | null>;
 };
 
+type ShareState = 'idle' | 'sharing' | 'copied-image' | 'commented' | 'copied-text' | 'failed';
+
 export function ResultsPanel({ result, gameNo, leaderboard, username, isToday, onShare }: Props) {
-  const [shareState, setShareState] = useState<'idle' | 'sharing' | 'commented' | 'copied' | 'failed'>('idle');
+  const [shareState, setShareState] = useState<ShareState>('idle');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      renderResultsSnapshot(canvasRef.current, result.statusByLetter, {
+        gameNo,
+        correct: result.correct,
+        wrong: result.wrong,
+        timeUsedSeconds: result.timeUsedSeconds,
+        ...(isToday ? { rank: result.rank, totalPlayers: result.totalPlayers } : {}),
+        streak: result.streak,
+      });
+    }
+  }, [result, gameNo, isToday]);
 
   const handleShare = async () => {
     setShareState('sharing');
+
+    // 1) Try copying the rendered snapshot image — the closest thing to a
+    // "screenshot" a sandboxed webview can produce without external image
+    // hosting (Reddit's media API only ingests pre-hosted URLs).
+    try {
+      if (canvasRef.current && typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+        const blob = await canvasToPngBlob(canvasRef.current);
+        if (blob) {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          setShareState('copied-image');
+          return;
+        }
+      }
+    } catch {
+      // fall through to text-based sharing
+    }
+
+    // 2) Post the emoji-ring result as a comment on the daily post.
     const res = await onShare();
     if (res?.posted) {
       setShareState('commented');
       return;
     }
-    // Fallback: clipboard (may be unavailable in some webviews).
+
+    // 3) Last resort: copy the text.
     try {
       await navigator.clipboard.writeText(res?.shareText ?? '');
-      setShareState('copied');
+      setShareState('copied-text');
     } catch {
       setShareState('failed');
     }
   };
 
   return (
-    <div className="flex w-full flex-col items-center gap-4 px-4 py-6">
-      <h1 className="text-2xl font-extrabold text-white">
-        Pasala🐐 #{gameNo}
-      </h1>
-      <p className="text-lg text-white/90">
-        🟢 {result.correct} · 🔴 {result.wrong} · 🔵 {26 - result.correct - result.wrong}
-      </p>
+    <div className="relative flex w-full flex-col items-center gap-4 px-4 py-6">
+      <GoatConfetti />
+
+      <p className="text-xl font-extrabold text-white">🎮 Game over!</p>
+
+      <canvas
+        ref={canvasRef}
+        className="w-full max-w-[320px] rounded-2xl shadow-lg"
+        aria-label="Results snapshot"
+      />
+
       {isToday && result.rank > 0 && (
         <p className="text-white/80">
           Rank <span className="font-bold text-cyan-300">#{result.rank}</span> of {result.totalPlayers} today
-          {result.streak > 1 && (
-            <span className="ml-2">🔥 {result.streak}-day streak</span>
-          )}
+          {result.streak > 1 && <span className="ml-2">🔥 {result.streak}-day streak</span>}
         </p>
       )}
-
-      <div className="w-full max-w-[300px]">
-        <LetterRing statusByLetter={result.statusByLetter} currentIndex={-1} />
-      </div>
 
       <button
         onClick={() => void handleShare()}
         disabled={shareState === 'sharing'}
         className="rounded-xl bg-emerald-500 px-6 py-3 font-bold text-white transition-colors hover:bg-emerald-400 disabled:opacity-50"
       >
-        {shareState === 'idle' && 'Share result 🐐'}
+        {shareState === 'idle' && '📸 Share result'}
         {shareState === 'sharing' && 'Sharing…'}
+        {shareState === 'copied-image' && 'Image copied — paste it anywhere! ✅'}
         {shareState === 'commented' && 'Posted as a comment ✅'}
-        {shareState === 'copied' && 'Copied to clipboard ✅'}
+        {shareState === 'copied-text' && 'Copied to clipboard ✅'}
         {shareState === 'failed' && 'Sharing unavailable 😞'}
       </button>
 
