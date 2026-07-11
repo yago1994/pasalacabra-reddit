@@ -94,6 +94,45 @@ export function useSpeechSynthesis(muted: boolean) {
     [supported, clearWatchdog]
   );
 
+  /**
+   * Speak a single line and resolve when it finishes (or immediately if TTS
+   * isn't usable). Used for the wrong-answer read-aloud, where the caller
+   * wants to hold the reveal until speech completes.
+   */
+  const speakLine = useCallback(
+    (text: string): Promise<void> => {
+      if (!supported || mutedRef.current) return Promise.resolve();
+      window.speechSynthesis.cancel();
+      clearWatchdog();
+      setIsSpeaking(true);
+
+      return new Promise<void>((resolve) => {
+        const finish = () => {
+          clearWatchdog();
+          setIsSpeaking(false);
+          resolve();
+        };
+        try {
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = 'en-US';
+          u.rate = SPEECH_RATE;
+          u.pitch = 1;
+          u.onend = finish;
+          u.onerror = finish;
+          const estimatedMs = (text.length / SPEECH_RATE) * 90;
+          timeoutRef.current = window.setTimeout(
+            finish,
+            Math.min(MAX_SPEECH_MS, Math.max(4000, estimatedMs))
+          );
+          window.speechSynthesis.speak(u);
+        } catch {
+          finish();
+        }
+      });
+    },
+    [supported, clearWatchdog]
+  );
+
   // Stop speaking if muted mid-utterance (deferred a tick so we don't call
   // setState synchronously inside the effect body).
   useEffect(() => {
@@ -116,5 +155,5 @@ export function useSpeechSynthesis(muted: boolean) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiPresent]);
 
-  return { supported, isSpeaking, speak, cancel };
+  return { supported, isSpeaking, speak, speakLine, cancel };
 }

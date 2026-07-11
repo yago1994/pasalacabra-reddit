@@ -183,6 +183,17 @@ export async function finishGame(params: {
   const streak = isToday ? await updateStreak(userId, date) : await getStreak(userId);
   const rank = await getRank(date, userId);
 
+  const answers = LETTERS.map((letter) => {
+    const qa = puzzle.questions.find((q) => q.letter === letter);
+    return {
+      letter,
+      mode: qa?.mode ?? ('starts' as const),
+      question: qa?.question ?? '',
+      answer: qa?.answer ?? '',
+      status: statusByLetter[letter],
+    };
+  });
+
   return {
     correct,
     wrong,
@@ -193,6 +204,7 @@ export async function finishGame(params: {
     maxStreak: streak.maxStreak,
     shareText: buildShareText(statusByLetter, puzzle.gameNo, timeUsed),
     statusByLetter,
+    answers,
   };
 }
 

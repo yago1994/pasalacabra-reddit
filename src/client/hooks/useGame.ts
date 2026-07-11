@@ -1,10 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import {
-  LETTERS,
-  REVEAL_PAUSE_MS,
-  type ClientQuestion,
-  type StatusByLetter,
-} from '../../shared/letters';
+import { LETTERS, type ClientQuestion, type StatusByLetter } from '../../shared/letters';
 import { createInitialStatusByLetter } from '../../shared/engine';
 import type {
   FinishResponse,
@@ -36,6 +31,9 @@ type GameData = {
   currentIndex: number;
   secondsLeft: number;
   feedback: Feedback | null;
+  /** True while the wrong-answer reveal is being read aloud — suppresses the
+   * next-question announcement until it finishes. */
+  revealing: boolean;
   result: GameResult | null;
   leaderboard: LeaderboardView;
   muted: boolean;
@@ -57,7 +55,9 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
 
 export function useGame(callbacks: {
   onCorrect: () => void;
-  onWrong: () => void;
+  /** Plays the wrong SFX and reads the correct answer aloud; resolves when the
+   * reveal is done (speech finished, or a fallback pause if TTS is unavailable). */
+  onWrong: (correctAnswer: string) => Promise<void>;
   onPass: () => void;
   onQuestion: (question: ClientQuestion) => void;
 }) {
@@ -73,6 +73,7 @@ export function useGame(callbacks: {
     currentIndex: 0,
     secondsLeft: 0,
     feedback: null,
+    revealing: false,
     result: null,
     leaderboard: { top: [], totalPlayers: 0 },
     muted: false,
@@ -176,10 +177,10 @@ export function useGame(callbacks: {
   // flips the caller's `isSpeaking` state — commits in the same paint as the
   // new currentIndex, instead of flashing the clue text for one frame first.
   useLayoutEffect(() => {
-    if (data.phase !== 'playing') return;
+    if (data.phase !== 'playing' || data.revealing) return;
     const q = data.questions[data.currentIndex];
     if (q) callbacksRef.current.onQuestion(q);
-  }, [data.phase, data.currentIndex, data.questions]);
+  }, [data.phase, data.currentIndex, data.questions, data.revealing]);
 
   const refreshLeaderboard = useCallback(async () => {
     try {
@@ -214,8 +215,9 @@ export function useGame(callbacks: {
     }
   }, []);
 
+  // Quick feedback path (correct / pass): flash the badge briefly, then clear.
   const applyServerState = useCallback(
-    (d: GuessResponse | PassResponse, feedback: Feedback | null, revealPause: boolean) => {
+    (d: GuessResponse | PassResponse, feedback: Feedback | null) => {
       setData((prev) => ({
         ...prev,
         statusByLetter: d.statusByLetter,
@@ -227,11 +229,7 @@ export function useGame(callbacks: {
           ? { phase: 'finished' as Phase, result: d.result, statusByLetter: d.result.statusByLetter }
           : {}),
       }));
-      if (revealPause) {
-        window.setTimeout(() => {
-          setData((prev) => (prev.feedback ? { ...prev, feedback: null } : prev));
-        }, REVEAL_PAUSE_MS);
-      } else if (feedback) {
+      if (feedback) {
         window.setTimeout(() => {
           setData((prev) => (prev.feedback ? { ...prev, feedback: null } : prev));
         }, 900);
@@ -251,21 +249,46 @@ export function useGame(callbacks: {
         const d = await post<GuessResponse>('/api/game/guess', { letter, answer: trimmed });
         if (d.verdict === 'correct') {
           callbacksRef.current.onCorrect();
-          applyServerState(d, { kind: 'correct' }, false);
+          applyServerState(d, { kind: 'correct' });
+          return;
+        }
+
+        // Wrong: reveal the correct answer and read it aloud, holding the
+        // turn (revealing = true suppresses the next-question announcement)
+        // until the read-aloud finishes — matching the original game.
+        const correctAnswer = d.correctAnswer ?? '';
+        setData((prev) => ({
+          ...prev,
+          statusByLetter: d.statusByLetter,
+          currentIndex: d.currentIndex,
+          secondsLeft: d.secondsLeft,
+          feedback: { kind: 'wrong', correctAnswer },
+          revealing: !d.finished,
+          submitting: false,
+        }));
+
+        await callbacksRef.current.onWrong(correctAnswer);
+
+        if (d.finished && d.result) {
+          const result = d.result;
+          setData((prev) => ({
+            ...prev,
+            phase: 'finished',
+            result,
+            statusByLetter: result.statusByLetter,
+            feedback: null,
+            revealing: false,
+          }));
+          void refreshLeaderboard();
         } else {
-          callbacksRef.current.onWrong();
-          applyServerState(
-            d,
-            { kind: 'wrong', correctAnswer: d.correctAnswer ?? '' },
-            !d.finished
-          );
+          setData((prev) => ({ ...prev, feedback: null, revealing: false }));
         }
       } catch (err) {
-        setData((prev) => ({ ...prev, submitting: false }));
+        setData((prev) => ({ ...prev, submitting: false, revealing: false }));
         console.error('guess failed:', err);
       }
     },
-    [data.submitting, data.feedback, data.currentIndex, applyServerState]
+    [data.submitting, data.feedback, data.currentIndex, applyServerState, refreshLeaderboard]
   );
 
   const pass = useCallback(async () => {
@@ -275,7 +298,7 @@ export function useGame(callbacks: {
     setData((prev) => ({ ...prev, submitting: true }));
     try {
       const d = await post<PassResponse>('/api/game/pass', { letter });
-      applyServerState(d, { kind: 'passed' }, false);
+      applyServerState(d, { kind: 'passed' });
     } catch (err) {
       setData((prev) => ({ ...prev, submitting: false }));
       console.error('pass failed:', err);

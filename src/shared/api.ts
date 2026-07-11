@@ -1,7 +1,16 @@
 // Request/response types for every /api endpoint, shared by client and server.
-import type { ClientQuestion, StatusByLetter } from './letters';
+import type { ClientQuestion, Letter, LetterStatus, QuestionMode, StatusByLetter } from './letters';
 
 export type ApiError = { status: 'error'; message: string };
+
+/** A revealed answer row, only ever sent once a game is finished. */
+export type AnswerReveal = {
+  letter: Letter;
+  mode: QuestionMode;
+  question: string;
+  answer: string;
+  status: LetterStatus;
+};
 
 export type LeaderboardRow = {
   username: string;
@@ -27,6 +36,8 @@ export type GameResult = {
   maxStreak: number;
   shareText: string;
   statusByLetter: StatusByLetter;
+  /** Full clue + correct answer for every letter (game is over, so safe to send). */
+  answers: AnswerReveal[];
 };
 
 export type InProgressGame = {

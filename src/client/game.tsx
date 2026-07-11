@@ -2,7 +2,7 @@ import './index.css';
 
 import { StrictMode, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { cluePrefix, LETTERS, type ClientQuestion } from '../shared/letters';
+import { cluePrefix, LETTERS, REVEAL_PAUSE_MS, type ClientQuestion } from '../shared/letters';
 import { useGame } from './hooks/useGame';
 import { useSfx } from './hooks/useSfx';
 import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
@@ -23,10 +23,11 @@ export const App = () => {
   // game.muted), so route them through refs updated after every render.
   const playSfxRef = useRef<(key: 'correct' | 'wrong' | 'pasalacabra') => void>(() => {});
   const speakRef = useRef<(prefix: string, question: string) => void>(() => {});
+  const onWrongRef = useRef<(correctAnswer: string) => Promise<void>>(async () => {});
 
   const game = useGame({
     onCorrect: () => playSfxRef.current('correct'),
-    onWrong: () => playSfxRef.current('wrong'),
+    onWrong: (correctAnswer: string) => onWrongRef.current(correctAnswer),
     onPass: () => playSfxRef.current('pasalacabra'),
     onQuestion: (q: ClientQuestion) => speakRef.current(cluePrefix(q.mode, q.letter), q.question),
   });
@@ -37,6 +38,18 @@ export const App = () => {
   useEffect(() => {
     playSfxRef.current = sfx.play;
     speakRef.current = tts.speak;
+    // Wrong answer: play the buzzer, then read the correct answer aloud and
+    // hold the reveal until it finishes. Where TTS can't run, fall back to a
+    // fixed pause so the revealed answer stays on screen long enough to read.
+    onWrongRef.current = async (correctAnswer: string) => {
+      sfx.play('wrong');
+      if (tts.supported && !game.muted && correctAnswer) {
+        await new Promise((r) => setTimeout(r, 250));
+        await tts.speakLine(`No. The correct answer is: ${correctAnswer}.`);
+      } else {
+        await new Promise((r) => setTimeout(r, REVEAL_PAUSE_MS));
+      }
+    };
   });
 
   // 3-2-1 countdown before the timer/first clue actually start.

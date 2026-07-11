@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameResult, LeaderboardView, ShareResponse } from '../../shared/api';
 import { Leaderboard } from './Leaderboard';
+import { AnswerList } from './AnswerList';
 import { GoatConfetti } from './GoatConfetti';
 import { canvasToPngBlob, renderResultsSnapshot } from '../game/resultsSnapshot';
 
@@ -103,6 +104,13 @@ export function ResultsPanel({ result, gameNo, leaderboard, username, isToday, o
         <h2 className="mb-2 text-lg font-bold text-white">Today's leaderboard</h2>
         <Leaderboard view={leaderboard} myUsername={username} />
       </div>
+
+      {result.answers.length > 0 && (
+        <div className="mt-2 w-full max-w-md">
+          <h2 className="mb-2 text-lg font-bold text-white">The answers</h2>
+          <AnswerList answers={result.answers} />
+        </div>
+      )}
 
       <p className="text-center text-xs text-white/40">
         New ring every day at 06:00 UTC. Keep your streak alive!
