@@ -29,11 +29,35 @@ export function useSfx(muted: boolean) {
   const getCtx = useCallback((): AudioContext | null => {
     if (ctxRef.current) return ctxRef.current;
     try {
-      ctxRef.current = new AudioContext();
+      // Some older mobile WebViews only expose the webkit-prefixed constructor.
+      const Ctor =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctor) return null;
+      ctxRef.current = new Ctor();
     } catch {
       return null;
     }
     return ctxRef.current;
+  }, []);
+
+  // Play a one-sample silent buffer to "unlock" the output path. iOS/mobile
+  // WebViews keep audio muted until a real buffer has been started from within
+  // a user gesture, even after resume() — this is the missing step that made
+  // SFX silent on mobile while speechSynthesis (a separate path) still worked.
+  const unlockOutput = useCallback((ctx: AudioContext) => {
+    try {
+      const buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+      const source = ctx.createBufferSource();
+      const gain = ctx.createGain();
+      gain.gain.value = 0;
+      source.buffer = buffer;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      source.start(0);
+    } catch {
+      // ignore
+    }
   }, []);
 
   // Prefetch raw bytes early (no user gesture needed for fetch).
@@ -60,6 +84,7 @@ export function useSfx(muted: boolean) {
     } catch {
       // playback may no-op until a later gesture
     }
+    unlockOutput(ctx);
     if (loadPromiseRef.current) return loadPromiseRef.current;
     loadPromiseRef.current = (async () => {
       await Promise.all(
@@ -76,13 +101,19 @@ export function useSfx(muted: boolean) {
       );
     })();
     return loadPromiseRef.current;
-  }, [getCtx]);
+  }, [getCtx, unlockOutput]);
 
-  // Unlock audio on first pointer interaction (mobile requirement).
+  // Unlock audio on early user interaction (mobile requirement). Listen for
+  // both pointerdown and touchstart — some mobile WebViews only reliably
+  // deliver one of them before the first audio attempt.
   useEffect(() => {
     const handler = () => void ensureReady();
     window.addEventListener('pointerdown', handler, { capture: true });
-    return () => window.removeEventListener('pointerdown', handler, { capture: true });
+    window.addEventListener('touchstart', handler, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener('pointerdown', handler, { capture: true });
+      window.removeEventListener('touchstart', handler, { capture: true });
+    };
   }, [ensureReady]);
 
   // Suspend audio when the post is scrolled away / backgrounded (review requirement).

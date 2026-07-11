@@ -15,33 +15,21 @@ const MAX_SPEECH_MS = 15000;
  * voice list, so `supported` additionally requires that.
  */
 export function useSpeechSynthesis(muted: boolean) {
-  const apiPresent = typeof window !== 'undefined' && 'speechSynthesis' in window;
-  const [hasVoices, setHasVoices] = useState(false);
+  // NOTE: we intentionally do NOT gate on getVoices().length. Many Android
+  // WebViews (which is what the Reddit app renders this game in) report an
+  // empty voice list even though TTS works fine — gating on it silently
+  // disabled a working read-aloud. Instead we always attempt speech where the
+  // API exists and rely on the watchdog below to clear `isSpeaking` if a
+  // broken engine never fires `onend`.
+  const supported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+  const apiPresent = supported;
   const [isSpeaking, setIsSpeaking] = useState(false);
   const mutedRef = useRef(muted);
   const timeoutRef = useRef<number | null>(null);
 
-  const supported = apiPresent && hasVoices;
-
   useEffect(() => {
     mutedRef.current = muted;
   }, [muted]);
-
-  // Voice lists populate asynchronously in some browsers; broken WebViews
-  // never populate one at all, which is exactly the case we want to detect.
-  useEffect(() => {
-    if (!apiPresent) return;
-    const check = () => {
-      if (window.speechSynthesis.getVoices().length > 0) setHasVoices(true);
-    };
-    check();
-    window.speechSynthesis.addEventListener('voiceschanged', check);
-    const timeout = window.setTimeout(check, 800);
-    return () => {
-      window.speechSynthesis.removeEventListener('voiceschanged', check);
-      window.clearTimeout(timeout);
-    };
-  }, [apiPresent]);
 
   const clearWatchdog = useCallback(() => {
     if (timeoutRef.current !== null) {

@@ -25,11 +25,23 @@ export const App = () => {
   const speakRef = useRef<(prefix: string, question: string) => void>(() => {});
   const onWrongRef = useRef<(correctAnswer: string) => Promise<void>>(async () => {});
 
+  // Letters whose clue has already been read once this session. On the first
+  // read of a letter we lock the input until the read-aloud finishes; on a
+  // repeat (a passed letter coming back around on a later lap) the input is
+  // active the moment the voice starts, since the player already heard it.
+  const seenLettersRef = useRef<Set<string>>(new Set());
+  const [firstRead, setFirstRead] = useState(true);
+
   const game = useGame({
     onCorrect: () => playSfxRef.current('correct'),
     onWrong: (correctAnswer: string) => onWrongRef.current(correctAnswer),
     onPass: () => playSfxRef.current('pasalacabra'),
-    onQuestion: (q: ClientQuestion) => speakRef.current(cluePrefix(q.mode, q.letter), q.question),
+    onQuestion: (q: ClientQuestion) => {
+      const isFirst = !seenLettersRef.current.has(q.letter);
+      seenLettersRef.current.add(q.letter);
+      setFirstRead(isFirst);
+      speakRef.current(cluePrefix(q.mode, q.letter), q.question);
+    },
   });
 
   const sfx = useSfx(game.muted);
@@ -43,11 +55,19 @@ export const App = () => {
     // fixed pause so the revealed answer stays on screen long enough to read.
     onWrongRef.current = async (correctAnswer: string) => {
       sfx.play('wrong');
+      // Hold the reveal at least REVEAL_PAUSE_MS so a silent/broken TTS engine
+      // still shows the answer long enough to read; if speech runs longer, wait
+      // for it. Running both in parallel means real TTS drives the timing and
+      // the fixed pause is just a floor.
+      const minReveal = new Promise((r) => setTimeout(r, REVEAL_PAUSE_MS));
       if (tts.supported && !game.muted && correctAnswer) {
-        await new Promise((r) => setTimeout(r, 250));
-        await tts.speakLine(`No. The correct answer is: ${correctAnswer}.`);
+        await new Promise((r) => setTimeout(r, 250)); // brief gap after the buzzer
+        await Promise.all([
+          tts.speakLine(`No. The correct answer is: ${correctAnswer}.`),
+          minReveal,
+        ]);
       } else {
-        await new Promise((r) => setTimeout(r, REVEAL_PAUSE_MS));
+        await minReveal;
       }
     };
   });
@@ -79,6 +99,8 @@ export const App = () => {
   const currentQuestion = game.questions[game.currentIndex];
   const correct = Object.values(game.statusByLetter).filter((s) => s === 'correct').length;
   const wrong = Object.values(game.statusByLetter).filter((s) => s === 'wrong').length;
+  // Only block input during a clue read the FIRST time each letter is heard.
+  const lockForRead = tts.isSpeaking && firstRead;
 
   if (game.phase === 'loading') {
     return (
@@ -191,7 +213,7 @@ export const App = () => {
           <p className="text-lg font-bold text-emerald-300">✅ Correct!</p>
         ) : game.feedback?.kind === 'passed' ? (
           <p className="text-lg font-bold text-sky-300">🐐 Passed!</p>
-        ) : tts.isSpeaking ? (
+        ) : lockForRead ? (
           <p className="text-sm italic text-white/50">🔊 Reading the clue…</p>
         ) : currentQuestion ? (
           <>
@@ -205,7 +227,7 @@ export const App = () => {
 
       <div className="w-full max-w-md pb-1">
         <AnswerInput
-          disabled={game.submitting || game.feedback !== null || tts.isSpeaking}
+          disabled={game.submitting || game.feedback !== null || lockForRead}
           onGuess={(answer) => void game.guess(answer)}
           onPass={() => void game.pass()}
         />
