@@ -24,6 +24,15 @@ export type LetterStatus = 'pending' | 'current' | 'passed' | 'correct' | 'wrong
 
 export type StatusByLetter = Record<Letter, LetterStatus>;
 
+/** Fill colors per status, shared by the ring, badges, and canvas snapshot. */
+export const STATUS_COLORS: Record<LetterStatus, string> = {
+  pending: '#4f8dff',
+  current: '#00d4ff',
+  passed: '#4f8dff',
+  correct: '#2bb673',
+  wrong: '#ff4d4d',
+};
+
 export const TURN_SECONDS = 240;
 
 /** Client-side pause after a wrong answer while the correct answer is shown. */

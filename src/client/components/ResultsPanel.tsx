@@ -2,8 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import type { GameResult, LeaderboardView, ShareResponse } from '../../shared/api';
 import { Leaderboard } from './Leaderboard';
 import { AnswerList } from './AnswerList';
+import { LetterBadges } from './LetterBadges';
 import { GoatConfetti } from './GoatConfetti';
 import { canvasToPngBlob, renderResultsSnapshot } from '../game/resultsSnapshot';
+
+function formatTime(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
 
 type Props = {
   result: GameResult;
@@ -68,17 +75,25 @@ export function ResultsPanel({ result, gameNo, leaderboard, username, isToday, o
     }
   };
 
+  const skip = 26 - result.correct - result.wrong;
+
   return (
-    <div className="relative flex w-full flex-col items-center gap-4 px-4 py-6">
+    <div className="relative flex w-full flex-col items-center gap-4 px-4 py-6 text-center">
       <GoatConfetti />
 
-      <p className="text-xl font-extrabold text-white">🎮 Game over!</p>
+      <p className="text-sm font-semibold tracking-wide text-white/50 uppercase">🎮 Game over</p>
+      <h1 className="text-3xl font-extrabold text-white">Pasala🐐 #{gameNo}</h1>
 
-      <canvas
-        ref={canvasRef}
-        className="w-full max-w-[320px] rounded-2xl shadow-lg"
-        aria-label="Results snapshot"
-      />
+      {/* Letters on top… */}
+      <LetterBadges statusByLetter={result.statusByLetter} />
+
+      {/* …then the summary, centered below. */}
+      <p className="text-lg font-semibold text-white/90">
+        🟢 {result.correct} · 🔴 {result.wrong} · 🔵 {skip} · ⏱️ {formatTime(result.timeUsedSeconds)}
+      </p>
+
+      {/* Hidden — rendered only to produce the shareable PNG. */}
+      <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
 
       {isToday && result.rank > 0 && (
         <p className="text-white/80">
