@@ -42,6 +42,13 @@
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/post-create"
+      },
+      {
+        "label": "Reset my Pasalacabra game (testing)",
+        "description": "Clears your own progress on today's puzzle so you can replay it",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/reset-my-game"
       }
     ]
   },

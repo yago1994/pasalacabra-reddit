@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import type { TriggerResponse, UiResponse } from '@devvit/web/shared';
-import { context } from '@devvit/web/server';
-import { createDailyPost } from '../core/post';
+import { context, redis } from '@devvit/web/server';
+import { createDailyPost, dateForPost } from '../core/post';
+import { gameKey, lbKey, lbNamesKey } from '../core/redisKeys';
 
 export const internal = new Hono();
 
@@ -48,5 +49,25 @@ internal.post('/menu/post-create', async (c) => {
   } catch (error) {
     console.error('menu post-create failed:', error);
     return c.json<UiResponse>({ showToast: 'Failed to create post' }, 400);
+  }
+});
+
+// Testing helper: clears the moderator's own progress on today's post so
+// they can replay it during playtest. Only ever touches the caller's own
+// data (menu actions run in the clicking user's context).
+internal.post('/menu/reset-my-game', async (c) => {
+  const { postId, userId } = context;
+  if (!postId || !userId) {
+    return c.json<UiResponse>({ showToast: 'Not available: missing user/post context' }, 400);
+  }
+  try {
+    const date = await dateForPost(postId);
+    await redis.del(gameKey(date, userId));
+    await redis.zRem(lbKey(date), [userId]);
+    await redis.hDel(lbNamesKey(date), [userId]);
+    return c.json<UiResponse>({ showToast: `Reset — reload to replay #${date}` }, 200);
+  } catch (error) {
+    console.error('reset-my-game failed:', error);
+    return c.json<UiResponse>({ showToast: 'Failed to reset' }, 400);
   }
 });
