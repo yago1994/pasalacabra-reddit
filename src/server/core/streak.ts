@@ -44,3 +44,13 @@ export async function getMuted(userId: string): Promise<boolean> {
 export async function setMuted(userId: string, muted: boolean): Promise<void> {
   await redis.hSet(userKey(userId), { muted: muted ? '1' : '0' });
 }
+
+/** Test mode gives the next game a very short timer so results are quick to see. */
+export async function getTestMode(userId: string): Promise<boolean> {
+  const v = await redis.hGet(userKey(userId), 'testMode');
+  return v === '1';
+}
+
+export async function setTestMode(userId: string, on: boolean): Promise<void> {
+  await redis.hSet(userKey(userId), { testMode: on ? '1' : '0' });
+}

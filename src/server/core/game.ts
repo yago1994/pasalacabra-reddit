@@ -31,6 +31,8 @@ export type StoredGame = {
   startedAt: number;
   finishedAt?: number;
   lastActionAt: number;
+  /** Turn length for this game — normally TURN_SECONDS, shorter in test mode. */
+  turnSeconds: number;
 };
 
 async function saveGame(date: string, userId: string, game: StoredGame): Promise<void> {
@@ -40,6 +42,7 @@ async function saveGame(date: string, userId: string, game: StoredGame): Promise
     startedAt: String(game.startedAt),
     finishedAt: game.finishedAt ? String(game.finishedAt) : '',
     lastActionAt: String(game.lastActionAt),
+    turnSeconds: String(game.turnSeconds),
   });
   await redis.expire(key, GAME_TTL_SECONDS);
 }
@@ -51,28 +54,38 @@ export async function loadGame(date: string, userId: string): Promise<StoredGame
     state: JSON.parse(raw.state) as GameState,
     startedAt: Number(raw.startedAt),
     lastActionAt: Number(raw.lastActionAt ?? raw.startedAt),
+    turnSeconds: raw.turnSeconds ? Number(raw.turnSeconds) : TURN_SECONDS,
   };
   if (raw.finishedAt) game.finishedAt = Number(raw.finishedAt);
   return game;
 }
 
 /** Wrong answers pause the client for the reveal; extend the allowance to match. */
-function allowedSeconds(state: GameState): number {
-  const { wrong } = countStatuses(state.statusByLetter);
-  return TURN_SECONDS + (wrong * REVEAL_PAUSE_MS) / 1000;
+function allowedSeconds(game: StoredGame): number {
+  const { wrong } = countStatuses(game.state.statusByLetter);
+  return game.turnSeconds + (wrong * REVEAL_PAUSE_MS) / 1000;
 }
 
 export function secondsLeft(game: StoredGame, now: number = Date.now()): number {
   const elapsed = (now - game.startedAt) / 1000;
-  return Math.max(0, Math.min(TURN_SECONDS, Math.ceil(allowedSeconds(game.state) - elapsed)));
+  return Math.max(0, Math.min(game.turnSeconds, Math.ceil(allowedSeconds(game) - elapsed)));
 }
 
-export async function startGame(date: string, userId: string): Promise<StoredGame> {
+export async function startGame(
+  date: string,
+  userId: string,
+  turnSeconds: number = TURN_SECONDS
+): Promise<StoredGame> {
   const existing = await loadGame(date, userId);
   if (existing) return existing; // idempotent; also blocks restarts
 
   const now = Date.now();
-  const game: StoredGame = { state: createInitialGameState(), startedAt: now, lastActionAt: now };
+  const game: StoredGame = {
+    state: createInitialGameState(),
+    startedAt: now,
+    lastActionAt: now,
+    turnSeconds,
+  };
   await saveGame(date, userId, game);
   return game;
 }
@@ -100,7 +113,7 @@ export async function applyAction(
 
   const now = Date.now();
   const elapsed = (now - game.startedAt) / 1000;
-  if (elapsed > allowedSeconds(game.state) + GRACE_SECONDS) {
+  if (elapsed > allowedSeconds(game) + GRACE_SECONDS) {
     game.finishedAt = now;
     await saveGame(date, userId, game);
     return { kind: 'timeout', game };
@@ -143,7 +156,7 @@ export function timeUsedSeconds(game: StoredGame): number {
   const end = game.finishedAt ?? Date.now();
   const { wrong } = countStatuses(game.state.statusByLetter);
   const played = (end - game.startedAt) / 1000 - (wrong * REVEAL_PAUSE_MS) / 1000;
-  return Math.max(0, Math.min(TURN_SECONDS, Math.round(played)));
+  return Math.max(0, Math.min(game.turnSeconds, Math.round(played)));
 }
 
 /**

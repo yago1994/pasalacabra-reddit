@@ -4,6 +4,7 @@ import { context, redis } from '@devvit/web/server';
 import { createDailyPost } from '../core/post';
 import { utcDateKey } from '../../shared/dailyIssue';
 import { dailyPostGuardKey, gameKey, lbKey, lbNamesKey, puzzleKey } from '../core/redisKeys';
+import { getTestMode, setTestMode } from '../core/streak';
 
 export const internal = new Hono();
 
@@ -98,5 +99,29 @@ internal.post('/menu/reset-today', async (c) => {
   } catch (error) {
     console.error('reset-today failed:', error);
     return c.json<UiResponse>({ showToast: 'Failed to reset' }, 400);
+  }
+});
+
+// Testing helper: toggle a 10-second timer for the caller's next game, so the
+// results screen can be reached quickly. Affects only the caller.
+internal.post('/menu/toggle-test-mode', async (c) => {
+  const { userId } = context;
+  if (!userId) {
+    return c.json<UiResponse>({ showToast: 'Not available: missing user context' }, 400);
+  }
+  try {
+    const next = !(await getTestMode(userId));
+    await setTestMode(userId, next);
+    return c.json<UiResponse>(
+      {
+        showToast: next
+          ? '10s test mode ON — reset your game, then Play'
+          : 'Test mode OFF — normal 4-minute timer',
+      },
+      200
+    );
+  } catch (error) {
+    console.error('toggle-test-mode failed:', error);
+    return c.json<UiResponse>({ showToast: 'Failed to toggle test mode' }, 400);
   }
 });

@@ -56,6 +56,13 @@
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/reset-today"
+      },
+      {
+        "label": "Toggle 10s test mode (testing)",
+        "description": "Gives your next game a 10-second timer so you can reach the results fast",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/toggle-test-mode"
       }
     ]
   },

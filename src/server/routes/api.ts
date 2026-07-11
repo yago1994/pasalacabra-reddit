@@ -28,7 +28,10 @@ import {
   startGame,
 } from '../core/game';
 import { getLeaderboard } from '../core/leaderboard';
-import { getMuted, getStreak, setMuted } from '../core/streak';
+import { getMuted, getStreak, getTestMode, setMuted } from '../core/streak';
+
+/** Short timer used when a moderator enables test mode, to reach results fast. */
+const TEST_TURN_SECONDS = 10;
 
 export const api = new Hono();
 
@@ -123,7 +126,8 @@ api.post('/game/start', async (c) => {
   if ('error' in session) return c.json<ApiError>({ status: 'error', message: session.error }, 400);
 
   const puzzle = await getOrCreatePuzzle(session.date);
-  const game = await startGame(session.date, session.userId);
+  const testMode = await getTestMode(session.userId);
+  const game = await startGame(session.date, session.userId, testMode ? TEST_TURN_SECONDS : TURN_SECONDS);
   if (game.finishedAt) {
     return c.json<ApiError>({ status: 'error', message: 'Game already finished' }, 400);
   }
