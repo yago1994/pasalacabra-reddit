@@ -49,6 +49,13 @@
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/reset-my-game"
+      },
+      {
+        "label": "Reset today's Pasalacabra day (testing)",
+        "description": "Clears today's puzzle + post guard so a removed post can be recreated fresh",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/reset-today"
       }
     ]
   },

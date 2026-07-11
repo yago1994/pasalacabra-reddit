@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
 import type { TriggerResponse, UiResponse } from '@devvit/web/shared';
 import { context, redis } from '@devvit/web/server';
-import { createDailyPost, dateForPost } from '../core/post';
-import { gameKey, lbKey, lbNamesKey } from '../core/redisKeys';
+import { createDailyPost } from '../core/post';
+import { utcDateKey } from '../../shared/dailyIssue';
+import { dailyPostGuardKey, gameKey, lbKey, lbNamesKey, puzzleKey } from '../core/redisKeys';
 
 export const internal = new Hono();
 
@@ -52,22 +53,50 @@ internal.post('/menu/post-create', async (c) => {
   }
 });
 
-// Testing helper: clears the moderator's own progress on today's post so
-// they can replay it during playtest. Only ever touches the caller's own
-// data (menu actions run in the clicking user's context).
+// Testing helper: clears the moderator's own progress on TODAY's puzzle so
+// they can replay it during playtest. This is a subreddit-level menu action
+// (not attached to any post), so there is no context.postId — it always
+// targets the current UTC date. Only ever touches the caller's own data.
 internal.post('/menu/reset-my-game', async (c) => {
-  const { postId, userId } = context;
-  if (!postId || !userId) {
-    return c.json<UiResponse>({ showToast: 'Not available: missing user/post context' }, 400);
+  const { userId } = context;
+  if (!userId) {
+    return c.json<UiResponse>({ showToast: 'Not available: missing user context' }, 400);
   }
   try {
-    const date = await dateForPost(postId);
+    const date = utcDateKey();
     await redis.del(gameKey(date, userId));
     await redis.zRem(lbKey(date), [userId]);
     await redis.hDel(lbNamesKey(date), [userId]);
     return c.json<UiResponse>({ showToast: `Reset — reload to replay #${date}` }, 200);
   } catch (error) {
     console.error('reset-my-game failed:', error);
+    return c.json<UiResponse>({ showToast: 'Failed to reset' }, 400);
+  }
+});
+
+// Testing helper: full day reset. Clears the caller's own game + leaderboard
+// entry (as above), plus today's puzzle and the daily-post creation guard —
+// so after you manually Remove the old Reddit post, "Create today's
+// Pasalacabra post" will actually make a fresh one instead of refusing
+// because a post for today already exists.
+internal.post('/menu/reset-today', async (c) => {
+  const { userId } = context;
+  if (!userId) {
+    return c.json<UiResponse>({ showToast: 'Not available: missing user context' }, 400);
+  }
+  try {
+    const date = utcDateKey();
+    await redis.del(gameKey(date, userId));
+    await redis.zRem(lbKey(date), [userId]);
+    await redis.hDel(lbNamesKey(date), [userId]);
+    await redis.del(puzzleKey(date));
+    await redis.del(dailyPostGuardKey(date));
+    return c.json<UiResponse>(
+      { showToast: `Day ${date} reset — remove the old post, then use "Create today's post"` },
+      200
+    );
+  } catch (error) {
+    console.error('reset-today failed:', error);
     return c.json<UiResponse>({ showToast: 'Failed to reset' }, 400);
   }
 });
