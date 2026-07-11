@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import type { GameResult, LeaderboardView, ShareResponse } from '../../shared/api';
 import { Leaderboard } from './Leaderboard';
 import { AnswerList } from './AnswerList';
-import { LetterBadges } from './LetterBadges';
 import { GoatConfetti } from './GoatConfetti';
 import { canvasToPngBlob, renderResultsSnapshot } from '../game/resultsSnapshot';
 
@@ -29,16 +28,9 @@ export function ResultsPanel({ result, gameNo, leaderboard, username, isToday, o
 
   useEffect(() => {
     if (canvasRef.current) {
-      renderResultsSnapshot(canvasRef.current, result.statusByLetter, {
-        gameNo,
-        correct: result.correct,
-        wrong: result.wrong,
-        timeUsedSeconds: result.timeUsedSeconds,
-        ...(isToday ? { rank: result.rank, totalPlayers: result.totalPlayers } : {}),
-        streak: result.streak,
-      });
+      renderResultsSnapshot(canvasRef.current, result.statusByLetter, gameNo);
     }
-  }, [result, gameNo, isToday]);
+  }, [result, gameNo]);
 
   const handleShare = async () => {
     setShareState('sharing');
@@ -82,18 +74,18 @@ export function ResultsPanel({ result, gameNo, leaderboard, username, isToday, o
       <GoatConfetti />
 
       <p className="text-sm font-semibold tracking-wide text-white/50 uppercase">🎮 Game over</p>
-      <h1 className="text-3xl font-extrabold text-white">Pasala🐐 #{gameNo}</h1>
 
-      {/* Letters on top… */}
-      <LetterBadges statusByLetter={result.statusByLetter} />
+      {/* The ring of letters (also the shareable image). */}
+      <canvas
+        ref={canvasRef}
+        className="w-full max-w-[340px] rounded-2xl shadow-lg"
+        aria-label={`Pasalacabra #${gameNo} results ring`}
+      />
 
-      {/* …then the summary, centered below. */}
+      {/* Summary below the ring. */}
       <p className="text-lg font-semibold text-white/90">
         🟢 {result.correct} · 🔴 {result.wrong} · 🔵 {skip} · ⏱️ {formatTime(result.timeUsedSeconds)}
       </p>
-
-      {/* Hidden — rendered only to produce the shareable PNG. */}
-      <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
 
       {isToday && result.rank > 0 && (
         <p className="text-white/80">

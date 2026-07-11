@@ -266,7 +266,9 @@ api.post('/share', async (c) => {
 
   const body = await c.req.json<ShareRequest>().catch(() => ({}) as ShareRequest);
   const skip = 26 - result.correct - result.wrong;
-  const caption = `Pasala🐐 #${puzzle.gameNo} — 🟢 ${result.correct} · 🔴 ${result.wrong} · 🔵 ${skip}`;
+  const t = result.timeUsedSeconds;
+  const time = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+  const caption = `Pasala🐐 #${puzzle.gameNo} — 🟢 ${result.correct} · 🔴 ${result.wrong} · 🔵 ${skip} · ⏱️ ${time}`;
 
   let posted = false;
   try {
