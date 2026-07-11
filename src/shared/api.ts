@@ -102,6 +102,11 @@ export type LeaderboardResponse = {
   leaderboard: LeaderboardView;
 };
 
+export type ShareRequest = {
+  /** PNG data URL of the results card, embedded into the comment when present. */
+  imageDataUrl?: string;
+};
+
 export type ShareResponse = {
   type: 'share';
   posted: boolean;

@@ -315,9 +315,9 @@ export function useGame(callbacks: {
     }
   }, [data.muted]);
 
-  const share = useCallback(async (): Promise<ShareResponse | null> => {
+  const share = useCallback(async (imageDataUrl?: string): Promise<ShareResponse | null> => {
     try {
-      return await post<ShareResponse>('/api/share');
+      return await post<ShareResponse>('/api/share', imageDataUrl ? { imageDataUrl } : {});
     } catch (err) {
       console.error('share failed:', err);
       return null;

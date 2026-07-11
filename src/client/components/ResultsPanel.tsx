@@ -18,7 +18,7 @@ type Props = {
   leaderboard: LeaderboardView;
   username: string | null;
   isToday: boolean;
-  onShare: () => Promise<ShareResponse | null>;
+  onShare: (imageDataUrl?: string) => Promise<ShareResponse | null>;
 };
 
 type ShareState = 'idle' | 'sharing' | 'copied-image' | 'commented' | 'copied-text' | 'failed';
@@ -43,9 +43,16 @@ export function ResultsPanel({ result, gameNo, leaderboard, username, isToday, o
   const handleShare = async () => {
     setShareState('sharing');
 
-    // 1) Try copying the rendered snapshot image — the closest thing to a
-    // "screenshot" a sandboxed webview can produce without external image
-    // hosting (Reddit's media API only ingests pre-hosted URLs).
+    // 1) Primary: post the rendered results card as an image comment on the
+    // daily post — the shared artifact that actually spreads on Reddit.
+    const dataUrl = canvasRef.current?.toDataURL('image/png');
+    const res = await onShare(dataUrl);
+    if (res?.posted) {
+      setShareState('commented');
+      return;
+    }
+
+    // 2) Fallback: copy the image to the clipboard.
     try {
       if (canvasRef.current && typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
         const blob = await canvasToPngBlob(canvasRef.current);
@@ -56,17 +63,10 @@ export function ResultsPanel({ result, gameNo, leaderboard, username, isToday, o
         }
       }
     } catch {
-      // fall through to text-based sharing
+      // fall through to text
     }
 
-    // 2) Post the emoji-ring result as a comment on the daily post.
-    const res = await onShare();
-    if (res?.posted) {
-      setShareState('commented');
-      return;
-    }
-
-    // 3) Last resort: copy the text.
+    // 3) Last resort: copy the emoji text.
     try {
       await navigator.clipboard.writeText(res?.shareText ?? '');
       setShareState('copied-text');
@@ -107,10 +107,10 @@ export function ResultsPanel({ result, gameNo, leaderboard, username, isToday, o
         disabled={shareState === 'sharing'}
         className="rounded-xl bg-emerald-500 px-6 py-3 font-bold text-white transition-colors hover:bg-emerald-400 disabled:opacity-50"
       >
-        {shareState === 'idle' && '📸 Share result'}
+        {shareState === 'idle' && '📸 Share to the thread'}
         {shareState === 'sharing' && 'Sharing…'}
+        {shareState === 'commented' && 'Posted your card as a comment ✅'}
         {shareState === 'copied-image' && 'Image copied — paste it anywhere! ✅'}
-        {shareState === 'commented' && 'Posted as a comment ✅'}
         {shareState === 'copied-text' && 'Copied to clipboard ✅'}
         {shareState === 'failed' && 'Sharing unavailable 😞'}
       </button>

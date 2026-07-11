@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { context, reddit } from '@devvit/web/server';
+import { context, media, reddit, RichTextBuilder } from '@devvit/web/server';
 import type {
   ApiError,
   FinishRequest,
@@ -12,6 +12,7 @@ import type {
   PassResponse,
   PrefsRequest,
   PrefsResponse,
+  ShareRequest,
   ShareResponse,
   StartResponse,
 } from '../../shared/api';
@@ -263,13 +264,24 @@ api.post('/share', async (c) => {
   const result = await finishGame({ ...sessionArgs(session), puzzle, game });
   if (!result) return c.json<ApiError>({ status: 'error', message: 'No result' }, 400);
 
+  const body = await c.req.json<ShareRequest>().catch(() => ({}) as ShareRequest);
+  const skip = 26 - result.correct - result.wrong;
+  const caption = `Pasala🐐 #${puzzle.gameNo} — 🟢 ${result.correct} · 🔴 ${result.wrong} · 🔵 ${skip}`;
+
   let posted = false;
   try {
-    await reddit.submitComment({
-      id: context.postId!,
-      text: result.shareText,
-      runAs: 'USER',
-    });
+    if (body.imageDataUrl && body.imageDataUrl.startsWith('data:image/')) {
+      // Upload the client-rendered results card and embed it in the comment,
+      // so the shared artifact carries the real visual, not just emoji.
+      const uploaded = await media.upload({ url: body.imageDataUrl, type: 'image' });
+      const richtext = new RichTextBuilder()
+        .image({ mediaUrl: uploaded.mediaUrl })
+        .paragraph((p) => p.text({ text: caption }));
+      await reddit.submitComment({ id: context.postId!, richtext, runAs: 'USER' });
+    } else {
+      // Fallback: emoji text comment (e.g. if the client couldn't render a PNG).
+      await reddit.submitComment({ id: context.postId!, text: result.shareText, runAs: 'USER' });
+    }
     posted = true;
   } catch (error) {
     console.error('share comment failed:', error);
