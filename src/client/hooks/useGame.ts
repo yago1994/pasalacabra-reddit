@@ -54,11 +54,15 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
 }
 
 export function useGame(callbacks: {
-  onCorrect: () => void;
+  /** Plays the correct SFX and speaks the affirmation ("Yes"); resolves when
+   * that read-aloud finishes, so the next clue isn't announced over it. */
+  onCorrect: () => void | Promise<void>;
   /** Plays the wrong SFX and reads the correct answer aloud; resolves when the
    * reveal is done (speech finished, or a fallback pause if TTS is unavailable). */
   onWrong: (correctAnswer: string) => Promise<void>;
   onPass: () => void;
+  /** Speaks the time-up end phrase when the timer runs out. */
+  onTimeUp?: () => void;
   onQuestion: (question: ClientQuestion) => void;
 }) {
   const [data, setData] = useState<GameData>({
@@ -85,6 +89,7 @@ export function useGame(callbacks: {
     callbacksRef.current = callbacks;
   }, [callbacks]);
   const finishingRef = useRef(false);
+  const spokeTimeUpRef = useRef(false);
 
   // ---- init ----
   useEffect(() => {
@@ -169,7 +174,14 @@ export function useGame(callbacks: {
 
   // ---- timeout ----
   useEffect(() => {
-    if (data.phase === 'playing' && data.secondsLeft === 0) void finish();
+    if (data.phase === 'playing' && data.secondsLeft === 0) {
+      // Speak the time-up end phrase once, then finish.
+      if (!spokeTimeUpRef.current) {
+        spokeTimeUpRef.current = true;
+        callbacksRef.current.onTimeUp?.();
+      }
+      void finish();
+    }
   }, [data.phase, data.secondsLeft, finish]);
 
   // ---- announce current question ----
@@ -194,6 +206,7 @@ export function useGame(callbacks: {
   }, []);
 
   const start = useCallback(async () => {
+    spokeTimeUpRef.current = false; // re-arm the time-up phrase for this game
     setData((prev) => ({ ...prev, submitting: true }));
     try {
       const d = await post<StartResponse>('/api/game/start');
@@ -248,7 +261,16 @@ export function useGame(callbacks: {
       try {
         const d = await post<GuessResponse>('/api/game/guess', { letter, answer: trimmed });
         if (d.verdict === 'correct') {
-          callbacksRef.current.onCorrect();
+          // Mark the letter correct (green) immediately, then play the SFX and
+          // speak "Yes" before advancing — mirroring the original, which reads
+          // the affirmation before moving to the next clue. `submitting` stays
+          // true until applyServerState clears it, so input is held meanwhile.
+          setData((prev) => ({
+            ...prev,
+            statusByLetter: d.statusByLetter,
+            feedback: { kind: 'correct' },
+          }));
+          await callbacksRef.current.onCorrect();
           applyServerState(d, { kind: 'correct' });
           return;
         }

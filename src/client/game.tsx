@@ -18,12 +18,20 @@ function formatTime(totalSeconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+// Spoken narration, mirroring the original game's English locale
+// (src/locale/config.ts: ttsYes / ttsTimeUp). "Ahnd that's Time!" is a
+// deliberate phonetic spelling so the TTS engine pronounces it as intended.
+const TTS_YES = 'Yes';
+const TTS_TIME_UP = "Ahnd that's Time!";
+
 export const App = () => {
   // useGame needs the callbacks before sfx/tts exist (they depend on
   // game.muted), so route them through refs updated after every render.
   const playSfxRef = useRef<(key: 'correct' | 'wrong' | 'pasalacabra') => void>(() => {});
   const speakRef = useRef<(prefix: string, question: string) => void>(() => {});
+  const onCorrectRef = useRef<() => Promise<void>>(async () => {});
   const onWrongRef = useRef<(correctAnswer: string) => Promise<void>>(async () => {});
+  const onTimeUpRef = useRef<() => void>(() => {});
 
   // Letters whose clue has already been read once this session. On the first
   // read of a letter we lock the input until the read-aloud finishes; on a
@@ -33,9 +41,10 @@ export const App = () => {
   const [firstRead, setFirstRead] = useState(true);
 
   const game = useGame({
-    onCorrect: () => playSfxRef.current('correct'),
+    onCorrect: () => onCorrectRef.current(),
     onWrong: (correctAnswer: string) => onWrongRef.current(correctAnswer),
     onPass: () => playSfxRef.current('pasalacabra'),
+    onTimeUp: () => onTimeUpRef.current(),
     onQuestion: (q: ClientQuestion) => {
       const isFirst = !seenLettersRef.current.has(q.letter);
       seenLettersRef.current.add(q.letter);
@@ -50,6 +59,20 @@ export const App = () => {
   useEffect(() => {
     playSfxRef.current = sfx.play;
     speakRef.current = tts.speak;
+    // Correct answer: play the chime, then speak the affirmation ("Yes").
+    // useGame awaits this before advancing, so "Yes" isn't cut off by the next
+    // clue — mirroring the original game.
+    onCorrectRef.current = async () => {
+      sfx.play('correct');
+      if (tts.supported && !game.muted) {
+        await new Promise((r) => setTimeout(r, 120)); // brief gap after the chime
+        await tts.speakLine(TTS_YES);
+      }
+    };
+    // Time's up: speak the end phrase as the game finishes.
+    onTimeUpRef.current = () => {
+      void tts.speakLine(TTS_TIME_UP);
+    };
     // Wrong answer: play the buzzer, then read the correct answer aloud and
     // hold the reveal until it finishes. Where TTS can't run, fall back to a
     // fixed pause so the revealed answer stays on screen long enough to read.
