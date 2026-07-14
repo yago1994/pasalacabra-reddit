@@ -12,8 +12,12 @@
 // empty — the app falls back to remote fetch / bundled rotation automatically.
 import type { SetDefinition } from '../sets';
 
-import d20260711 from './2026-07-11.json';
+import d20260712 from './2026-07-12.json';
+import d20260713 from './2026-07-13.json';
+import d20260714 from './2026-07-14.json';
 
 export const DAILY_SETS: Record<string, SetDefinition> = {
-  '2026-07-11': d20260711,
+  '2026-07-12': d20260712,
+  '2026-07-13': d20260713,
+  '2026-07-14': d20260714,
 } as Record<string, SetDefinition>;
