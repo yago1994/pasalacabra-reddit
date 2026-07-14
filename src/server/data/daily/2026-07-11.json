@@ -1,0 +1,167 @@
+{
+  "id": "set-2026-07-11",
+  "questions": [
+    {
+      "letter": "A",
+      "mode": "starts",
+      "question": "1979 sci-fi horror film featuring the starship Nostromo",
+      "answer": "Alien"
+    },
+    {
+      "letter": "B",
+      "mode": "starts",
+      "question": "Band from Liverpool featuring Lennon, McCartney, Harrison, and Starr",
+      "answer": "Beatles",
+      "alt": [
+        "The Beatles"
+      ]
+    },
+    {
+      "letter": "C",
+      "mode": "starts",
+      "question": "Fastest land animal",
+      "answer": "Cheetah"
+    },
+    {
+      "letter": "D",
+      "mode": "starts",
+      "question": "Domesticated bird famous for its quack",
+      "answer": "Duck"
+    },
+    {
+      "letter": "E",
+      "mode": "starts",
+      "question": "Spiny egg-laying mammal related to the platypus",
+      "answer": "Echidna"
+    },
+    {
+      "letter": "F",
+      "mode": "starts",
+      "question": "Instrument famously played by Jethro Tull’s Ian Anderson",
+      "answer": "Flute"
+    },
+    {
+      "letter": "G",
+      "mode": "starts",
+      "question": "Largest living primate",
+      "answer": "Gorilla"
+    },
+    {
+      "letter": "H",
+      "mode": "starts",
+      "question": "Surname of the director of Psycho and Vertigo",
+      "answer": "Hitchcock"
+    },
+    {
+      "letter": "I",
+      "mode": "starts",
+      "question": "2015 Pixar film about personified emotions in a girl's mind",
+      "answer": "Inside Out"
+    },
+    {
+      "letter": "J",
+      "mode": "starts",
+      "question": "1975 thriller about a great white shark",
+      "answer": "Jaws"
+    },
+    {
+      "letter": "K",
+      "mode": "starts",
+      "question": "Flightless bird and national symbol of New Zealand",
+      "answer": "Kiwi"
+    },
+    {
+      "letter": "L",
+      "mode": "starts",
+      "question": "Big cat known as the king of beasts",
+      "answer": "Lion"
+    },
+    {
+      "letter": "M",
+      "mode": "starts",
+      "question": "Pop icon behind Like a Prayer",
+      "answer": "Madonna"
+    },
+    {
+      "letter": "N",
+      "mode": "starts",
+      "question": "Canadian singer-songwriter of Harvest and Heart of Gold",
+      "answer": "Neil Young"
+    },
+    {
+      "letter": "O",
+      "mode": "starts",
+      "question": "Eight-armed sea creature known for intelligence",
+      "answer": "Octopus"
+    },
+    {
+      "letter": "P",
+      "mode": "starts",
+      "question": "Colorful bird famed for mimicry of human speech",
+      "answer": "Parrot"
+    },
+    {
+      "letter": "Q",
+      "mode": "starts",
+      "question": "Rock band that recorded Bohemian Rhapsody",
+      "answer": "Queen"
+    },
+    {
+      "letter": "R",
+      "mode": "starts",
+      "question": "Thick-skinned herbivore with one or two nasal horns",
+      "answer": "Rhinoceros",
+      "alt": [
+        "Rhino"
+      ]
+    },
+    {
+      "letter": "S",
+      "mode": "starts",
+      "question": "Space opera franchise featuring lightsabers and the Force",
+      "answer": "Star Wars"
+    },
+    {
+      "letter": "T",
+      "mode": "starts",
+      "question": "Brass instrument played with a slide",
+      "answer": "Trombone"
+    },
+    {
+      "letter": "U",
+      "mode": "starts",
+      "question": "Irish rock band fronted by Bono",
+      "answer": "U2"
+    },
+    {
+      "letter": "V",
+      "mode": "starts",
+      "question": "Baroque composer of The Four Seasons",
+      "answer": "Vivaldi"
+    },
+    {
+      "letter": "W",
+      "mode": "starts",
+      "question": "Arctic marine mammal with long tusks and whiskers",
+      "answer": "Walrus"
+    },
+    {
+      "letter": "X",
+      "mode": "contains",
+      "question": "Cunning canid of folklore with a bushy tail",
+      "answer": "Fox"
+    },
+    {
+      "letter": "Y",
+      "mode": "starts",
+      "question": "Long-haired bovine of the Himalayas",
+      "answer": "Yak"
+    },
+    {
+      "letter": "Z",
+      "mode": "starts",
+      "question": "Striped African equid",
+      "answer": "Zebra"
+    }
+  ]
+}
