@@ -1,0 +1,182 @@
+{
+  "id": "set-2026-07-13",
+  "questions": [
+    {
+      "letter": "A",
+      "mode": "starts",
+      "question": "Author of Pride and Prejudice",
+      "answer": "Austen"
+    },
+    {
+      "letter": "B",
+      "mode": "starts",
+      "question": "Layered pastry with nuts and honey from Ottoman cuisine",
+      "answer": "Baklava",
+      "alt": [
+        "Baklawa"
+      ]
+    },
+    {
+      "letter": "C",
+      "mode": "starts",
+      "question": "Author of The Canterbury Tales",
+      "answer": "Chaucer"
+    },
+    {
+      "letter": "D",
+      "mode": "starts",
+      "question": "Poet of the Divine Comedy",
+      "answer": "Dante",
+      "alt": [
+        "Dante Alighieri"
+      ]
+    },
+    {
+      "letter": "E",
+      "mode": "starts",
+      "question": "Tudor monarch known as the Virgin Queen",
+      "answer": "Elizabeth I",
+      "alt": [
+        "Elizabeth the First"
+      ]
+    },
+    {
+      "letter": "F",
+      "mode": "starts",
+      "question": "Deep-fried Middle Eastern balls made from ground chickpeas or fava beans",
+      "answer": "Falafel",
+      "alt": [
+        "Felafel"
+      ]
+    },
+    {
+      "letter": "G",
+      "mode": "starts",
+      "question": "Printer who introduced movable type to Europe and produced the famed Bible",
+      "answer": "Gutenberg"
+    },
+    {
+      "letter": "H",
+      "mode": "starts",
+      "question": "Author of The Old Man and the Sea",
+      "answer": "Hemingway"
+    },
+    {
+      "letter": "I",
+      "mode": "starts",
+      "question": "Epic poem about the Trojan War attributed to Homer",
+      "answer": "Iliad"
+    },
+    {
+      "letter": "J",
+      "mode": "starts",
+      "question": "French heroine burned at the stake after leading forces at Orléans",
+      "answer": "Joan of Arc",
+      "alt": [
+        "Jeanne d'Arc"
+      ]
+    },
+    {
+      "letter": "K",
+      "mode": "starts",
+      "question": "Author of The Metamorphosis",
+      "answer": "Kafka"
+    },
+    {
+      "letter": "L",
+      "mode": "starts",
+      "question": "U.S. president who issued the Emancipation Proclamation",
+      "answer": "Lincoln"
+    },
+    {
+      "letter": "M",
+      "mode": "starts",
+      "question": "Shakespeare tragedy about a Scottish thane and prophecy",
+      "answer": "Macbeth"
+    },
+    {
+      "letter": "N",
+      "mode": "starts",
+      "question": "French emperor defeated at Waterloo",
+      "answer": "Napoleon"
+    },
+    {
+      "letter": "O",
+      "mode": "starts",
+      "question": "Author of Nineteen Eighty-Four and Animal Farm",
+      "answer": "Orwell"
+    },
+    {
+      "letter": "P",
+      "mode": "starts",
+      "question": "Author of The Raven",
+      "answer": "Poe"
+    },
+    {
+      "letter": "Q",
+      "mode": "starts",
+      "question": "Savory French tart with egg custard and fillings in a pastry crust",
+      "answer": "Quiche"
+    },
+    {
+      "letter": "R",
+      "mode": "starts",
+      "question": "European cultural rebirth spanning the 14th to 17th centuries",
+      "answer": "Renaissance"
+    },
+    {
+      "letter": "S",
+      "mode": "starts",
+      "question": "Japanese dish of vinegared rice often paired with raw fish",
+      "answer": "Sushi"
+    },
+    {
+      "letter": "T",
+      "mode": "starts",
+      "question": "Author of War and Peace",
+      "answer": "Tolstoy",
+      "alt": [
+        "Tolstoi"
+      ]
+    },
+    {
+      "letter": "U",
+      "mode": "starts",
+      "question": "Modernist novel by James Joyce set over a single day in Dublin",
+      "answer": "Ulysses"
+    },
+    {
+      "letter": "V",
+      "mode": "starts",
+      "question": "Enlightenment writer of Candide",
+      "answer": "Voltaire"
+    },
+    {
+      "letter": "W",
+      "mode": "starts",
+      "question": "Author of Mrs Dalloway and A Room of One's Own",
+      "answer": "Woolf"
+    },
+    {
+      "letter": "X",
+      "mode": "starts",
+      "question": "Persian king who led the invasion of Greece in 480 BCE",
+      "answer": "Xerxes",
+      "alt": [
+        "Xerxes I"
+      ]
+    },
+    {
+      "letter": "Y",
+      "mode": "starts",
+      "question": "Irish poet who wrote The Second Coming",
+      "answer": "Yeats"
+    },
+    {
+      "letter": "Z",
+      "mode": "starts",
+      "question": "Author of Germinal and leader of the naturalist movement",
+      "answer": "Zola"
+    }
+  ]
+}

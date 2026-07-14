@@ -1,0 +1,167 @@
+{
+  "id": "set-2026-07-14",
+  "questions": [
+    {
+      "letter": "A",
+      "mode": "starts",
+      "question": "Primary energy currency of the cell.",
+      "answer": "ATP"
+    },
+    {
+      "letter": "B",
+      "mode": "starts",
+      "question": "Domain of prokaryotes characterized by peptidoglycan cell walls.",
+      "answer": "bacteria"
+    },
+    {
+      "letter": "C",
+      "mode": "starts",
+      "question": "Green pigment that captures light in photosynthesis.",
+      "answer": "chlorophyll"
+    },
+    {
+      "letter": "D",
+      "mode": "starts",
+      "question": "Neurotransmitter linked to reward signaling in the brain.",
+      "answer": "dopamine"
+    },
+    {
+      "letter": "E",
+      "mode": "starts",
+      "question": "Protein catalyst that speeds up biochemical reactions.",
+      "answer": "enzyme"
+    },
+    {
+      "letter": "F",
+      "mode": "starts",
+      "question": "Anaerobic process yeast use to produce ethanol and carbon dioxide in bread dough.",
+      "answer": "fermentation"
+    },
+    {
+      "letter": "G",
+      "mode": "starts",
+      "question": "Simple sugar that is the main energy source for cells.",
+      "answer": "glucose"
+    },
+    {
+      "letter": "H",
+      "mode": "starts",
+      "question": "Oxygen-carrying protein in red blood cells.",
+      "answer": "hemoglobin",
+      "alt": [
+        "haemoglobin"
+      ]
+    },
+    {
+      "letter": "I",
+      "mode": "starts",
+      "question": "Pancreatic hormone that lowers blood glucose.",
+      "answer": "insulin"
+    },
+    {
+      "letter": "J",
+      "mode": "starts",
+      "question": "SI unit of work or energy.",
+      "answer": "joule"
+    },
+    {
+      "letter": "K",
+      "mode": "starts",
+      "question": "Fibrous protein in hair and nails.",
+      "answer": "keratin"
+    },
+    {
+      "letter": "L",
+      "mode": "starts",
+      "question": "Organelle containing digestive enzymes in eukaryotic cells.",
+      "answer": "lysosome"
+    },
+    {
+      "letter": "M",
+      "mode": "starts",
+      "question": "Cell division that produces two genetically identical daughter cells.",
+      "answer": "mitosis"
+    },
+    {
+      "letter": "N",
+      "mode": "starts",
+      "question": "Cell specialized for transmitting nerve impulses.",
+      "answer": "neuron"
+    },
+    {
+      "letter": "O",
+      "mode": "starts",
+      "question": "Egg dish cooked in a pan, often folded around fillings.",
+      "answer": "omelet",
+      "alt": [
+        "omelette"
+      ]
+    },
+    {
+      "letter": "P",
+      "mode": "starts",
+      "question": "Process by which plants convert light energy into chemical energy.",
+      "answer": "photosynthesis"
+    },
+    {
+      "letter": "Q",
+      "mode": "starts",
+      "question": "Andean seed cooked like a grain, high in protein.",
+      "answer": "quinoa"
+    },
+    {
+      "letter": "R",
+      "mode": "starts",
+      "question": "Cellular machine that synthesizes proteins.",
+      "answer": "ribosome"
+    },
+    {
+      "letter": "S",
+      "mode": "starts",
+      "question": "Plant storage polysaccharide that turns blue-black with iodine.",
+      "answer": "starch"
+    },
+    {
+      "letter": "T",
+      "mode": "starts",
+      "question": "Gland in the neck that secretes hormones regulating metabolism.",
+      "answer": "thyroid"
+    },
+    {
+      "letter": "U",
+      "mode": "starts",
+      "question": "Small protein that tags other proteins for degradation by the proteasome.",
+      "answer": "ubiquitin"
+    },
+    {
+      "letter": "V",
+      "mode": "starts",
+      "question": "Biological preparation that provides acquired immunity to a disease.",
+      "answer": "vaccine"
+    },
+    {
+      "letter": "W",
+      "mode": "starts",
+      "question": "Liquid byproduct remaining after milk is curdled and strained.",
+      "answer": "whey"
+    },
+    {
+      "letter": "X",
+      "mode": "starts",
+      "question": "Plant vascular tissue that transports water and minerals from roots.",
+      "answer": "xylem"
+    },
+    {
+      "letter": "Y",
+      "mode": "starts",
+      "question": "Nutrient-rich portion of an egg surrounding the germinal disc.",
+      "answer": "yolk"
+    },
+    {
+      "letter": "Z",
+      "mode": "starts",
+      "question": "Summer squash often sauteed or spiralized.",
+      "answer": "zucchini"
+    }
+  ]
+}
