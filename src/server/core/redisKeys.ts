@@ -14,6 +14,8 @@ export const userKey = (userId: string) => `user:${userId}`;
 export const postKey = (postId: string) => `post:${postId}`;
 /** Guard so the daily post is only created once per date. */
 export const dailyPostGuardKey = (date: string) => `dailypost:${date}`;
+/** postId → sticky comment id (t1_...) that score-share replies land under. */
+export const stickyCommentKey = (postId: string) => `sticky:${postId}`;
 
 export const PUZZLE_TTL_SECONDS = 90 * DAY_SECONDS;
 export const GAME_TTL_SECONDS = 30 * DAY_SECONDS;

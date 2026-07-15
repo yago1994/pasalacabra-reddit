@@ -19,7 +19,7 @@ import type {
 import { utcDateKey } from '../../shared/dailyIssue';
 import { TURN_SECONDS } from '../../shared/letters';
 import { getOrCreatePuzzle, toClientQuestions } from '../core/puzzle';
-import { dateForPost } from '../core/post';
+import { dateForPost, getStickyCommentId } from '../core/post';
 import {
   applyAction,
   finishGame,
@@ -272,6 +272,9 @@ api.post('/share', async (c) => {
 
   let posted = false;
   try {
+    // Generic/automated score shares reply to the post's sticky comment
+    // rather than landing as top-level comments.
+    const stickyId = await getStickyCommentId(context.postId!);
     if (body.imageDataUrl && body.imageDataUrl.startsWith('data:image/')) {
       // Upload the client-rendered results card and embed it in the comment,
       // so the shared artifact carries the real visual, not just emoji.
@@ -279,10 +282,10 @@ api.post('/share', async (c) => {
       const richtext = new RichTextBuilder()
         .image({ mediaUrl: uploaded.mediaUrl })
         .paragraph((p) => p.text({ text: caption }));
-      await reddit.submitComment({ id: context.postId!, richtext, runAs: 'USER' });
+      await reddit.submitComment({ id: stickyId, richtext, runAs: 'USER' });
     } else {
       // Fallback: emoji text comment (e.g. if the client couldn't render a PNG).
-      await reddit.submitComment({ id: context.postId!, text: result.shareText, runAs: 'USER' });
+      await reddit.submitComment({ id: stickyId, text: result.shareText, runAs: 'USER' });
     }
     posted = true;
   } catch (error) {

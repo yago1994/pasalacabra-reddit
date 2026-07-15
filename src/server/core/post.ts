@@ -1,7 +1,23 @@
 import { redis, reddit } from '@devvit/web/server';
 import { formatDateLong, utcDateKey } from '../../shared/dailyIssue';
 import { getOrCreatePuzzle } from './puzzle';
-import { dailyPostGuardKey, postKey, POST_TTL_SECONDS } from './redisKeys';
+import { dailyPostGuardKey, postKey, stickyCommentKey, POST_TTL_SECONDS } from './redisKeys';
+
+const STICKY_COMMENT_TEXT =
+  "Post your results here! 🐐 Share your score by replying to this comment — top-level comments are for discussing today's ring.";
+
+/** Creates the sticky comment score-shares reply to, and remembers its id. */
+const createStickyComment = async (postId: `t3_${string}`): Promise<`t1_${string}`> => {
+  const comment = await reddit.submitComment({
+    id: postId,
+    text: STICKY_COMMENT_TEXT,
+    runAs: 'APP',
+  });
+  await comment.distinguish(true);
+  await redis.set(stickyCommentKey(postId), comment.id);
+  await redis.expire(stickyCommentKey(postId), POST_TTL_SECONDS);
+  return comment.id;
+};
 
 /**
  * Create the daily puzzle post (idempotent per date). Returns the post id,
@@ -23,7 +39,18 @@ export const createDailyPost = async (date: string = utcDateKey()): Promise<stri
 
   await redis.set(postKey(post.id), date);
   await redis.expire(postKey(post.id), POST_TTL_SECONDS);
+  await createStickyComment(post.id);
   return post.id;
+};
+
+/**
+ * The sticky comment score-share replies should land under. Creates one
+ * lazily for posts that predate this feature.
+ */
+export const getStickyCommentId = async (postId: `t3_${string}`): Promise<`t1_${string}`> => {
+  const stored = await redis.get(stickyCommentKey(postId));
+  if (stored) return stored as `t1_${string}`;
+  return createStickyComment(postId);
 };
 
 /** Which date's puzzle does this post host? */
