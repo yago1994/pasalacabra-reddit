@@ -42,8 +42,11 @@ function scoreVoice(voice: SpeechSynthesisVoice): number {
   const rank = PREFERRED_VOICES.findIndex((pattern) => pattern.test(voice.name));
   if (rank >= 0) score += 100 - rank * 10;
   if (AVOID_VOICES.some((pattern) => pattern.test(voice.name))) score -= 80;
-  // Server-backed voices are the higher-quality tier wherever both exist.
-  if (!voice.localService) score += 15;
+  // Tie-break toward on-device voices: a server-backed voice can take longer to
+  // start than the engine-is-dead deadline below, or produce nothing at all in
+  // a WebView. Name rank still outranks this, so a genuinely better cloud voice
+  // is still chosen where it works.
+  if (voice.localService) score += 15;
   if (voice.default) score += 5;
 
   return score;
@@ -62,12 +65,17 @@ function pickBestVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | n
   return best;
 }
 /**
- * How long to wait for `onstart` before deciding the engine is broken. iOS
- * WKWebView (the Reddit iOS app) exposes speechSynthesis but frequently
+ * How long to wait for `onstart` before deciding an attempt produced nothing.
+ * iOS WKWebView (the Reddit iOS app) exposes speechSynthesis but frequently
  * produces no audio and fires no events; without a start deadline the UI would
  * sit on "Reading the clue…" until the end-watchdog fires seconds later.
+ *
+ * The first attempt gets the longer window because a chosen voice may need to
+ * be loaded (or fetched, for server-backed voices) before it starts.
  */
-const START_GRACE_MS = 1500;
+const START_GRACE_MS = 2000;
+/** Deadline for the retry on the engine's own default voice. */
+const FALLBACK_GRACE_MS = 1200;
 
 /**
  * Experimental clue read-aloud via the browser-built-in speechSynthesis.
@@ -98,6 +106,16 @@ export function useSpeechSynthesis(muted: boolean) {
   const speechWorksRef = useRef<boolean | null>(null);
   // Best English voice this engine offers; null = use the engine default.
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  // Set once a chosen voice has been proven silent — stops the voice refresh
+  // below from handing the same broken voice back.
+  const voiceRejectedRef = useRef(false);
+  /**
+   * Settles the in-flight `run` promise. Callers await speech (the wrong-answer
+   * reveal holds the turn until the answer has been read), so every path that
+   * stops speech must resolve it — otherwise `cancel()` clearing the watchdogs
+   * strands the awaiting caller and the game hangs with the clock running.
+   */
+  const pendingFinishRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     mutedRef.current = muted;
@@ -110,6 +128,7 @@ export function useSpeechSynthesis(muted: boolean) {
     if (!supported) return;
     const synth = window.speechSynthesis;
     const refresh = () => {
+      if (voiceRejectedRef.current) return;
       try {
         const voices = synth.getVoices();
         if (voices.length) voiceRef.current = pickBestVoice(voices);
@@ -118,10 +137,20 @@ export function useSpeechSynthesis(muted: boolean) {
       }
     };
     refresh();
-    synth.addEventListener('voiceschanged', refresh);
+    // Not every WebView implements EventTarget on speechSynthesis; the timed
+    // re-read below is the fallback when this isn't wired up.
+    try {
+      synth.addEventListener('voiceschanged', refresh);
+    } catch {
+      // ignore
+    }
     const retry = window.setTimeout(refresh, 300);
     return () => {
-      synth.removeEventListener('voiceschanged', refresh);
+      try {
+        synth.removeEventListener('voiceschanged', refresh);
+      } catch {
+        // ignore
+      }
       window.clearTimeout(retry);
     };
   }, [supported]);
@@ -139,8 +168,15 @@ export function useSpeechSynthesis(muted: boolean) {
 
   const cancel = useCallback(() => {
     clearTimers();
-    if (supported) window.speechSynthesis.cancel();
+    if (supported) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // ignore
+      }
+    }
     setIsSpeaking(false);
+    pendingFinishRef.current?.();
   }, [supported, clearTimers]);
 
   /** Speak the given lines in order; resolve when done, bailed, or skipped. */
@@ -150,72 +186,123 @@ export function useSpeechSynthesis(muted: boolean) {
       // Known-dead engine: don't lock the UI, just reveal immediately.
       if (speechWorksRef.current === false) return Promise.resolve();
 
+      // Settle any run this one supersedes, so its awaiter can't be stranded.
+      pendingFinishRef.current?.();
       window.speechSynthesis.cancel();
       clearTimers();
       setIsSpeaking(true);
 
       return new Promise<void>((resolve) => {
-        let started = false;
+        let settled = false;
         const finish = () => {
+          if (settled) return;
+          settled = true;
+          if (pendingFinishRef.current === finish) pendingFinishRef.current = null;
           clearTimers();
           setIsSpeaking(false);
           resolve();
         };
+        pendingFinishRef.current = finish;
 
-        try {
-          const utterances = lines.map((text) => {
-            const u = new SpeechSynthesisUtterance(text);
-            const voice = voiceRef.current;
-            if (voice) {
-              u.voice = voice;
-              // Must match the voice, or some engines fall back to the default.
-              u.lang = voice.lang;
-            } else {
-              u.lang = 'en-US';
-            }
-            u.rate = SPEECH_RATE;
-            u.pitch = 1;
-            u.volume = 1;
-            return u;
-          });
-          const first = utterances[0]!;
-          const last = utterances[utterances.length - 1]!;
+        const quietCancel = () => {
+          try {
+            window.speechSynthesis.cancel();
+          } catch {
+            // ignore
+          }
+        };
 
-          first.onstart = () => {
-            started = true;
-            speechWorksRef.current = true;
-            if (startTimerRef.current !== null) {
-              window.clearTimeout(startTimerRef.current);
-              startTimerRef.current = null;
-            }
-            // Now that speech is really underway, arm a length-scaled end
-            // watchdog in case onend never arrives.
-            const totalLen = lines.join(' ').length;
-            const estMs = (totalLen / SPEECH_RATE) * 90;
-            endTimerRef.current = window.setTimeout(
-              finish,
-              Math.min(MAX_SPEECH_MS, Math.max(4000, estMs))
-            );
-          };
-          last.onend = finish;
-          last.onerror = finish;
+        /**
+         * Speak `lines` once, with or without the chosen voice, and call
+         * `onNoStart` if nothing began within `graceMs`.
+         *
+         * Attempts are generation-stamped because `cancel()` makes some engines
+         * fire `onend`/`onerror` on the utterances being discarded — without the
+         * stale check, superseding attempt 1 would settle the promise (and
+         * unlock the input) while attempt 2 was still speaking.
+         */
+        let generation = 0;
+        const attempt = (useChosenVoice: boolean, graceMs: number, onNoStart: () => void) => {
+          const mine = ++generation;
+          const stale = () => mine !== generation;
+          clearTimers();
+          quietCancel();
+          let started = false;
 
-          startTimerRef.current = window.setTimeout(() => {
-            if (!started) {
-              speechWorksRef.current = false; // give up on TTS for the rest of the session
-              try {
-                window.speechSynthesis.cancel();
-              } catch {
-                // ignore
+          try {
+            const voice = useChosenVoice ? voiceRef.current : null;
+            const utterances = lines.map((text) => {
+              const u = new SpeechSynthesisUtterance(text);
+              if (voice) {
+                u.voice = voice;
+                // Must match the voice, or some engines ignore it. Normalized
+                // because a few Android engines report tags as `en_US`.
+                u.lang = voice.lang.replace('_', '-');
+              } else {
+                u.lang = 'en-US';
               }
-              finish();
-            }
-          }, START_GRACE_MS);
+              u.rate = SPEECH_RATE;
+              u.pitch = 1;
+              u.volume = 1;
+              return u;
+            });
+            const first = utterances[0]!;
+            const last = utterances[utterances.length - 1]!;
 
-          for (const u of utterances) window.speechSynthesis.speak(u);
-        } catch {
+            first.onstart = () => {
+              if (stale()) return;
+              started = true;
+              speechWorksRef.current = true;
+              if (startTimerRef.current !== null) {
+                window.clearTimeout(startTimerRef.current);
+                startTimerRef.current = null;
+              }
+              // Now that speech is really underway, arm a length-scaled end
+              // watchdog in case onend never arrives.
+              const totalLen = lines.join(' ').length;
+              const estMs = (totalLen / SPEECH_RATE) * 90;
+              endTimerRef.current = window.setTimeout(
+                finish,
+                Math.min(MAX_SPEECH_MS, Math.max(4000, estMs))
+              );
+            };
+            last.onend = () => {
+              if (!stale()) finish();
+            };
+            last.onerror = () => {
+              if (!stale()) finish();
+            };
+
+            startTimerRef.current = window.setTimeout(() => {
+              if (!stale() && !started) onNoStart();
+            }, graceMs);
+
+            for (const u of utterances) window.speechSynthesis.speak(u);
+          } catch {
+            if (!stale()) onNoStart();
+          }
+        };
+
+        const giveUp = () => {
+          speechWorksRef.current = false; // skip TTS for the rest of the session
+          quietCancel();
           finish();
-        }
+        };
+
+        attempt(true, START_GRACE_MS, () => {
+          // The chosen voice produced no audio and no events. Some WebViews
+          // no-op on `utterance.voice` entirely, so before writing the engine
+          // off, retry once on its own default voice — a robotic voice still
+          // beats silence. The rejection sticks for the session so later clues
+          // don't pay the deadline again.
+          if (voiceRef.current) {
+            voiceRef.current = null;
+            voiceRejectedRef.current = true;
+            attempt(false, FALLBACK_GRACE_MS, giveUp);
+          } else {
+            giveUp();
+          }
+        });
       });
     },
     [supported, clearTimers]
@@ -247,8 +334,10 @@ export function useSpeechSynthesis(muted: boolean) {
       window.speechSynthesis.speak(u);
       // Safari/WKWebView only populates the voice list once the engine has been
       // used, so this is the first point where a good voice can be chosen.
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length) voiceRef.current = pickBestVoice(voices);
+      if (!voiceRejectedRef.current) {
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length) voiceRef.current = pickBestVoice(voices);
+      }
     } catch {
       // ignore
     }

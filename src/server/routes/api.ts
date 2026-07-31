@@ -15,9 +15,11 @@ import type {
   ShareRequest,
   ShareResponse,
   StartResponse,
+  StateResponse,
 } from '../../shared/api';
 import { utcDateKey } from '../../shared/dailyIssue';
 import { TURN_SECONDS } from '../../shared/letters';
+import { createInitialStatusByLetter } from '../../shared/engine';
 import { getOrCreatePuzzle, toClientQuestions } from '../core/puzzle';
 import { dateForPost, getStickyCommentId } from '../core/post';
 import {
@@ -152,11 +154,13 @@ api.post('/game/guess', async (c) => {
   }
 
   const puzzle = await getOrCreatePuzzle(session.date);
-  const outcome = await applyAction(session.date, session.userId, puzzle, {
-    type: 'guess',
-    letter: body.letter,
-    answer: body.answer,
-  });
+  const outcome = await applyAction(
+    session.date,
+    session.userId,
+    puzzle,
+    { type: 'guess', letter: body.letter, answer: body.answer },
+    body.stalledMs
+  );
 
   if (outcome.kind === 'rejected') {
     return c.json<ApiError>({ status: 'error', message: outcome.reason }, 400);
@@ -203,10 +207,13 @@ api.post('/game/pass', async (c) => {
   }
 
   const puzzle = await getOrCreatePuzzle(session.date);
-  const outcome = await applyAction(session.date, session.userId, puzzle, {
-    type: 'pass',
-    letter: body.letter,
-  });
+  const outcome = await applyAction(
+    session.date,
+    session.userId,
+    puzzle,
+    { type: 'pass', letter: body.letter },
+    body.stalledMs
+  );
 
   if (outcome.kind === 'rejected') {
     return c.json<ApiError>({ status: 'error', message: outcome.reason }, 400);
@@ -241,6 +248,49 @@ api.post('/game/finish', async (c) => {
   if (!result) return c.json<ApiError>({ status: 'error', message: 'No game to finish' }, 400);
 
   return c.json<FinishResponse>({ type: 'finish', result });
+});
+
+/**
+ * Authoritative state, for a client recovering from an action whose outcome it
+ * never saw (timed out or dropped mid-flight). Read-only and idempotent, so it
+ * is safe to call after a failure where replaying the action would not be.
+ */
+api.get('/game/state', async (c) => {
+  const session = await getSession();
+  if ('error' in session) return c.json<ApiError>({ status: 'error', message: session.error }, 400);
+
+  const game = await loadGame(session.date, session.userId);
+  if (!game) {
+    return c.json<StateResponse>({
+      type: 'state',
+      status: 'not_started',
+      statusByLetter: createInitialStatusByLetter(),
+      currentIndex: 0,
+      secondsLeft: 0,
+    });
+  }
+
+  const remaining = secondsLeft(game);
+  if (game.finishedAt || remaining <= 0) {
+    const puzzle = await getOrCreatePuzzle(session.date);
+    const result = await finishGame({ ...sessionArgs(session), puzzle, game });
+    return c.json<StateResponse>({
+      type: 'state',
+      status: 'finished',
+      statusByLetter: result?.statusByLetter ?? game.state.statusByLetter,
+      currentIndex: game.state.currentIndex,
+      secondsLeft: 0,
+      ...(result ? { result } : {}),
+    });
+  }
+
+  return c.json<StateResponse>({
+    type: 'state',
+    status: 'in_progress',
+    statusByLetter: game.state.statusByLetter,
+    currentIndex: game.state.currentIndex,
+    secondsLeft: remaining,
+  });
 });
 
 api.get('/leaderboard', async (c) => {

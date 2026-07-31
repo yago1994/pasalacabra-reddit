@@ -12,6 +12,13 @@ import { ResultsPanel } from './components/ResultsPanel';
 import { Leaderboard } from './components/Leaderboard';
 import cabraUrl from './assets/cabra.png';
 
+/**
+ * Hard cap on how long the wrong-answer reveal will wait for the read-aloud.
+ * The reveal holds the turn, so a speech engine that never reports finishing
+ * must not be able to stall the game.
+ */
+const MAX_REVEAL_WAIT_MS = 6000;
+
 function formatTime(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
@@ -62,10 +69,12 @@ export const App = () => {
       const minReveal = new Promise((r) => setTimeout(r, REVEAL_PAUSE_MS));
       if (tts.supported && !game.muted && correctAnswer) {
         await new Promise((r) => setTimeout(r, 250)); // brief gap after the buzzer
-        await Promise.all([
-          tts.speakLine(`No. The correct answer is: ${correctAnswer}.`),
-          minReveal,
+        const spoken = tts.speakLine(`No. The correct answer is: ${correctAnswer}.`);
+        const spokenOrCapped = Promise.race([
+          spoken,
+          new Promise((r) => setTimeout(r, MAX_REVEAL_WAIT_MS)),
         ]);
+        await Promise.all([spokenOrCapped, minReveal]);
       } else {
         await minReveal;
       }
@@ -188,7 +197,15 @@ export const App = () => {
   return (
     <div className="flex h-dvh flex-col items-center gap-2 overflow-hidden bg-[var(--bg)] px-3 py-2">
       <div className="flex w-full max-w-md items-center justify-between text-white">
-        <span className="text-lg font-bold tabular-nums">⏱️ {formatTime(game.secondsLeft)}</span>
+        {/* The clock visibly freezes while we're waiting on the server, which is
+            also what the server credits back — so the pause is real, not
+            cosmetic. */}
+        <span
+          className={`text-lg font-bold tabular-nums ${game.reconnecting ? 'text-amber-300' : ''}`}
+          title={game.reconnecting ? 'Reconnecting — your clock is paused' : undefined}
+        >
+          {game.reconnecting ? '📡' : '⏱️'} {formatTime(game.secondsLeft)}
+        </span>
         <span className="text-sm text-white/80">
           🟢 {correct} · 🔴 {wrong}
         </span>
@@ -216,6 +233,10 @@ export const App = () => {
           <p className="text-lg font-bold text-emerald-300">✅ Correct!</p>
         ) : game.feedback?.kind === 'passed' ? (
           <p className="text-lg font-bold text-sky-300">🐐 Passed!</p>
+        ) : game.reconnecting ? (
+          <p className="text-sm font-semibold text-amber-300">
+            📡 Reconnecting… your clock is paused
+          </p>
         ) : lockForRead ? (
           <p className="text-sm italic text-white/50">🔊 Reading the clue…</p>
         ) : currentQuestion ? (
@@ -229,8 +250,11 @@ export const App = () => {
       </div>
 
       <div className="w-full max-w-md pb-1">
+        {game.errorMessage && (
+          <p className="pb-1 text-center text-xs text-red-300">{game.errorMessage}</p>
+        )}
         <AnswerInput
-          disabled={game.submitting || game.feedback !== null || lockForRead}
+          disabled={game.submitting || game.reconnecting || game.feedback !== null || lockForRead}
           speaking={tts.isSpeaking}
           onGuess={(answer) => void game.guess(answer)}
           onPass={() => void game.pass()}

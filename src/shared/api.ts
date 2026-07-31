@@ -68,7 +68,14 @@ export type StartResponse = {
   secondsLeft: number;
 };
 
-export type GuessRequest = { letter: string; answer: string };
+/**
+ * Every action reports how long the client was locked waiting on the *previous*
+ * request, so the server can credit that time back to the clock. See
+ * MAX_STALL_CREDIT_PER_ACTION_MS for the bounds the server applies.
+ */
+export type StallReport = { stalledMs?: number };
+
+export type GuessRequest = { letter: string; answer: string } & StallReport;
 
 export type GuessResponse = {
   type: 'guess';
@@ -81,7 +88,7 @@ export type GuessResponse = {
   result?: GameResult;
 };
 
-export type PassRequest = { letter: string };
+export type PassRequest = { letter: string } & StallReport;
 
 export type PassResponse = {
   type: 'pass';
@@ -90,11 +97,25 @@ export type PassResponse = {
   secondsLeft: number;
 };
 
-export type FinishRequest = { reason: 'timeout' | 'gaveup' };
+export type FinishRequest = { reason: 'timeout' | 'gaveup' } & StallReport;
 
 export type FinishResponse = {
   type: 'finish';
   result: GameResult;
+};
+
+/**
+ * Authoritative game state, for the client to recover with after a request it
+ * can't tell the outcome of (a timed-out or dropped action). Read-only, so it
+ * is always safe to retry.
+ */
+export type StateResponse = {
+  type: 'state';
+  status: 'not_started' | 'in_progress' | 'finished';
+  statusByLetter: StatusByLetter;
+  currentIndex: number;
+  secondsLeft: number;
+  result?: GameResult;
 };
 
 export type LeaderboardResponse = {

@@ -1,6 +1,8 @@
 import { redis } from '@devvit/web/server';
 import {
   LETTERS,
+  MAX_STALL_CREDIT_PER_ACTION_MS,
+  MAX_STALL_CREDIT_TOTAL_MS,
   REVEAL_PAUSE_MS,
   TURN_SECONDS,
   type Letter,
@@ -33,6 +35,11 @@ export type StoredGame = {
   lastActionAt: number;
   /** Turn length for this game — normally TURN_SECONDS, shorter in test mode. */
   turnSeconds: number;
+  /**
+   * Accumulated time the player was locked out waiting on the network, credited
+   * back to the clock so a slow connection doesn't eat the turn.
+   */
+  creditedMs: number;
 };
 
 async function saveGame(date: string, userId: string, game: StoredGame): Promise<void> {
@@ -43,6 +50,7 @@ async function saveGame(date: string, userId: string, game: StoredGame): Promise
     finishedAt: game.finishedAt ? String(game.finishedAt) : '',
     lastActionAt: String(game.lastActionAt),
     turnSeconds: String(game.turnSeconds),
+    creditedMs: String(game.creditedMs),
   });
   await redis.expire(key, GAME_TTL_SECONDS);
 }
@@ -55,15 +63,34 @@ export async function loadGame(date: string, userId: string): Promise<StoredGame
     startedAt: Number(raw.startedAt),
     lastActionAt: Number(raw.lastActionAt ?? raw.startedAt),
     turnSeconds: raw.turnSeconds ? Number(raw.turnSeconds) : TURN_SECONDS,
+    // Absent on games stored before credits existed.
+    creditedMs: raw.creditedMs ? Number(raw.creditedMs) : 0,
   };
   if (raw.finishedAt) game.finishedAt = Number(raw.finishedAt);
   return game;
 }
 
-/** Wrong answers pause the client for the reveal; extend the allowance to match. */
+/**
+ * The turn's real deadline. The nominal turn length, plus the two kinds of time
+ * the player couldn't play through: the wrong-answer reveal (server-computed,
+ * one per wrong letter) and network stalls (client-reported, see creditStall).
+ */
 function allowedSeconds(game: StoredGame): number {
   const { wrong } = countStatuses(game.state.statusByLetter);
-  return game.turnSeconds + (wrong * REVEAL_PAUSE_MS) / 1000;
+  return game.turnSeconds + (wrong * REVEAL_PAUSE_MS) / 1000 + game.creditedMs / 1000;
+}
+
+/**
+ * Credit time the client reports being locked out for. Only the client can
+ * measure its own round trip, so the figure is bounded three ways: per action,
+ * in total across the game, and by the wall-clock gap since the last action —
+ * a report can never claim more time than actually elapsed.
+ */
+function creditStall(game: StoredGame, reportedMs: number | undefined, now: number): void {
+  if (typeof reportedMs !== 'number' || !Number.isFinite(reportedMs) || reportedMs <= 0) return;
+  const gap = Math.max(0, now - game.lastActionAt);
+  const room = Math.max(0, MAX_STALL_CREDIT_TOTAL_MS - game.creditedMs);
+  game.creditedMs += Math.min(reportedMs, MAX_STALL_CREDIT_PER_ACTION_MS, gap, room);
 }
 
 export function secondsLeft(game: StoredGame, now: number = Date.now()): number {
@@ -85,6 +112,7 @@ export async function startGame(
     startedAt: now,
     lastActionAt: now,
     turnSeconds,
+    creditedMs: 0,
   };
   await saveGame(date, userId, game);
   return game;
@@ -105,13 +133,16 @@ export async function applyAction(
   date: string,
   userId: string,
   puzzle: Puzzle,
-  action: { type: 'guess'; letter: string; answer: string } | { type: 'pass'; letter: string }
+  action: { type: 'guess'; letter: string; answer: string } | { type: 'pass'; letter: string },
+  stalledMs?: number
 ): Promise<ActionOutcome> {
   const game = await loadGame(date, userId);
   if (!game) return { kind: 'rejected', reason: 'Game not started' };
   if (game.finishedAt) return { kind: 'rejected', reason: 'Game already finished' };
 
   const now = Date.now();
+  // Credit before the deadline check, so a stall can't be what ends the game.
+  creditStall(game, stalledMs, now);
   const elapsed = (now - game.startedAt) / 1000;
   if (elapsed > allowedSeconds(game) + GRACE_SECONDS) {
     game.finishedAt = now;
@@ -152,10 +183,16 @@ export async function applyAction(
   return outcome;
 }
 
+/**
+ * Time the player actually spent playing — the leaderboard's tiebreaker, so it
+ * has to exclude everything they couldn't play through, exactly as
+ * `allowedSeconds` does. Otherwise a laggy connection would rank worse.
+ */
 export function timeUsedSeconds(game: StoredGame): number {
   const end = game.finishedAt ?? Date.now();
   const { wrong } = countStatuses(game.state.statusByLetter);
-  const played = (end - game.startedAt) / 1000 - (wrong * REVEAL_PAUSE_MS) / 1000;
+  const played =
+    (end - game.startedAt) / 1000 - (wrong * REVEAL_PAUSE_MS) / 1000 - game.creditedMs / 1000;
   return Math.max(0, Math.min(game.turnSeconds, Math.round(played)));
 }
 

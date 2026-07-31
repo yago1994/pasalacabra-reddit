@@ -10,6 +10,7 @@ import type {
   PassResponse,
   ShareResponse,
   StartResponse,
+  StateResponse,
 } from '../../shared/api';
 
 export type Phase = 'loading' | 'error' | 'intro' | 'playing' | 'finished';
@@ -38,19 +39,38 @@ type GameData = {
   leaderboard: LeaderboardView;
   muted: boolean;
   submitting: boolean;
+  /** A request stalled or failed and we're recovering; the clock is paused. */
+  reconnecting: boolean;
 };
 
+/**
+ * Hard ceiling on any single request. Without it a stalled fetch never settles,
+ * which used to leave the UI locked on "submitting" — input disabled — while
+ * the clock kept running down.
+ */
+const REQUEST_TIMEOUT_MS = 9000;
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const res = await fetch(path, { ...init, signal: controller.signal });
+    const data = (await res.json()) as T & { status?: string; message?: string };
+    if (!res.ok || data.status === 'error') {
+      throw new Error(data.message ?? `HTTP ${res.status}`);
+    }
+    return data;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
 async function post<T>(path: string, body?: unknown): Promise<T> {
-  const res = await fetch(path, {
+  return request<T>(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body ?? {}),
   });
-  const data = (await res.json()) as T & { status?: string; message?: string };
-  if (!res.ok || data.status === 'error') {
-    throw new Error(data.message ?? `HTTP ${res.status}`);
-  }
-  return data;
 }
 
 export function useGame(callbacks: {
@@ -78,6 +98,7 @@ export function useGame(callbacks: {
     leaderboard: { top: [], totalPlayers: 0 },
     muted: false,
     submitting: false,
+    reconnecting: false,
   });
 
   const callbacksRef = useRef(callbacks);
@@ -85,6 +106,30 @@ export function useGame(callbacks: {
     callbacksRef.current = callbacks;
   }, [callbacks]);
   const finishingRef = useRef(false);
+
+  /**
+   * How long the client was locked waiting on the previous request. Sent with
+   * the next action so the server can credit it back to the clock. Held (and
+   * accumulated) rather than dropped when a request fails, since a failed
+   * request is exactly the case worth crediting.
+   */
+  const pendingStallRef = useRef(0);
+
+  /** POST an action, reporting the previous stall and measuring this one. */
+  const postAction = useCallback(async <T,>(path: string, body: object): Promise<T> => {
+    const startedAt = Date.now();
+    const stalledMs = pendingStallRef.current;
+    pendingStallRef.current = 0;
+    try {
+      const data = await post<T>(path, { ...body, stalledMs });
+      pendingStallRef.current = Date.now() - startedAt;
+      return data;
+    } catch (err) {
+      // The report never landed — keep it, plus this attempt's own stall.
+      pendingStallRef.current = stalledMs + (Date.now() - startedAt);
+      throw err;
+    }
+  }, []);
 
   // ---- init ----
   useEffect(() => {
@@ -129,9 +174,15 @@ export function useGame(callbacks: {
   }, []);
 
   // ---- countdown ----
+  // The clock only runs while the turn is genuinely the player's: it stops for
+  // the wrong-answer reveal, and for any time spent waiting on the server. The
+  // server credits the same intervals back to its own deadline (see
+  // `creditStall`), so the two stay in step and a slow connection doesn't cost
+  // anyone a turn.
   useEffect(() => {
     if (data.phase !== 'playing') return;
     if (data.feedback?.kind === 'wrong') return; // paused during answer reveal
+    if (data.submitting || data.reconnecting) return; // waiting on the network
     const id = window.setInterval(() => {
       setData((prev) =>
         prev.phase === 'playing' && prev.secondsLeft > 0
@@ -140,32 +191,82 @@ export function useGame(callbacks: {
       );
     }, 1000);
     return () => window.clearInterval(id);
-  }, [data.phase, data.feedback]);
+  }, [data.phase, data.feedback, data.submitting, data.reconnecting]);
+
+  /**
+   * Recover authoritative state after an action whose outcome we never saw.
+   * Replaying the action isn't safe — it may already have been applied — so ask
+   * the server what happened instead. Returns false if even this can't get
+   * through, leaving the caller to keep the reconnecting state up.
+   */
+  const resync = useCallback(async (): Promise<boolean> => {
+    try {
+      const d = await request<StateResponse>('/api/game/state');
+      if (d.status === 'finished' && d.result) {
+        const result = d.result;
+        setData((prev) => ({
+          ...prev,
+          phase: 'finished',
+          result,
+          statusByLetter: result.statusByLetter,
+          feedback: null,
+          revealing: false,
+          submitting: false,
+          reconnecting: false,
+        }));
+        void refreshLeaderboard();
+        return true;
+      }
+      setData((prev) => ({
+        ...prev,
+        statusByLetter: d.statusByLetter,
+        currentIndex: d.currentIndex,
+        secondsLeft: d.secondsLeft,
+        feedback: null,
+        revealing: false,
+        submitting: false,
+        reconnecting: false,
+      }));
+      return true;
+    } catch {
+      return false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const finish = useCallback(async () => {
     if (finishingRef.current) return;
     finishingRef.current = true;
     try {
-      const d = await post<FinishResponse>('/api/game/finish', { reason: 'timeout' });
+      const d = await postAction<FinishResponse>('/api/game/finish', { reason: 'timeout' });
       setData((prev) => ({
         ...prev,
         phase: 'finished',
         result: d.result,
         statusByLetter: d.result.statusByLetter,
         feedback: null,
+        reconnecting: false,
       }));
       void refreshLeaderboard();
     } catch (err) {
-      setData((prev) => ({
-        ...prev,
-        phase: 'error',
-        errorMessage: err instanceof Error ? err.message : 'Failed to finish',
-      }));
+      // Don't strand the player on the error screen for a dropped request: the
+      // server may have ended the game already, or — because it credits stalled
+      // time — may still have time left on its clock, in which case play
+      // resumes from the state it reports.
+      setData((prev) => ({ ...prev, reconnecting: true }));
+      const recovered = await resync();
+      if (!recovered) {
+        setData((prev) => ({
+          ...prev,
+          phase: 'error',
+          errorMessage: err instanceof Error ? err.message : 'Failed to finish',
+        }));
+      }
     } finally {
       finishingRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [postAction, resync]);
 
   // ---- timeout ----
   useEffect(() => {
@@ -184,9 +285,7 @@ export function useGame(callbacks: {
 
   const refreshLeaderboard = useCallback(async () => {
     try {
-      const res = await fetch('/api/leaderboard');
-      if (!res.ok) return;
-      const d = (await res.json()) as { leaderboard: LeaderboardView };
+      const d = await request<{ leaderboard: LeaderboardView }>('/api/leaderboard');
       setData((prev) => ({ ...prev, leaderboard: d.leaderboard }));
     } catch {
       // non-critical
@@ -225,6 +324,8 @@ export function useGame(callbacks: {
         secondsLeft: d.secondsLeft,
         feedback,
         submitting: false,
+        reconnecting: false,
+        errorMessage: '',
         ...('finished' in d && d.finished && d.result
           ? { phase: 'finished' as Phase, result: d.result, statusByLetter: d.result.statusByLetter }
           : {}),
@@ -246,7 +347,7 @@ export function useGame(callbacks: {
       const letter = LETTERS[data.currentIndex]!;
       setData((prev) => ({ ...prev, submitting: true }));
       try {
-        const d = await post<GuessResponse>('/api/game/guess', { letter, answer: trimmed });
+        const d = await postAction<GuessResponse>('/api/game/guess', { letter, answer: trimmed });
         if (d.verdict === 'correct') {
           callbacksRef.current.onCorrect();
           applyServerState(d, { kind: 'correct' });
@@ -284,11 +385,29 @@ export function useGame(callbacks: {
           setData((prev) => ({ ...prev, feedback: null, revealing: false }));
         }
       } catch (err) {
-        setData((prev) => ({ ...prev, submitting: false, revealing: false }));
         console.error('guess failed:', err);
+        // The guess may or may not have been applied, so don't replay it — ask
+        // the server. Until that answers, the clock stays paused.
+        setData((prev) => ({ ...prev, submitting: false, revealing: false, reconnecting: true }));
+        const recovered = await resync();
+        if (!recovered) {
+          setData((prev) => ({
+            ...prev,
+            reconnecting: false,
+            errorMessage: 'Connection trouble — try that answer again.',
+          }));
+        }
       }
     },
-    [data.submitting, data.feedback, data.currentIndex, applyServerState, refreshLeaderboard]
+    [
+      data.submitting,
+      data.feedback,
+      data.currentIndex,
+      applyServerState,
+      refreshLeaderboard,
+      postAction,
+      resync,
+    ]
   );
 
   const pass = useCallback(async () => {
@@ -297,13 +416,21 @@ export function useGame(callbacks: {
     callbacksRef.current.onPass();
     setData((prev) => ({ ...prev, submitting: true }));
     try {
-      const d = await post<PassResponse>('/api/game/pass', { letter });
+      const d = await postAction<PassResponse>('/api/game/pass', { letter });
       applyServerState(d, { kind: 'passed' });
     } catch (err) {
-      setData((prev) => ({ ...prev, submitting: false }));
       console.error('pass failed:', err);
+      setData((prev) => ({ ...prev, submitting: false, reconnecting: true }));
+      const recovered = await resync();
+      if (!recovered) {
+        setData((prev) => ({
+          ...prev,
+          reconnecting: false,
+          errorMessage: 'Connection trouble — try again.',
+        }));
+      }
     }
-  }, [data.submitting, data.feedback, data.currentIndex, applyServerState]);
+  }, [data.submitting, data.feedback, data.currentIndex, applyServerState, postAction, resync]);
 
   const toggleMute = useCallback(async () => {
     const muted = !data.muted;
