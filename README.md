@@ -27,4 +27,5 @@ The app stores, per player: game progress for the current day, daily scores (kep
 
 ## Changelog
 
+- **Unreleased** — Read-aloud now picks the most natural English voice the device offers instead of the engine default. Answer input gained a clear (✕) button, keyboard word suggestions, and voice answers where the browser allows microphone access (elsewhere the phone keyboard's own dictation key works).
 - **0.1.0** — Initial release: daily A–Z ring with 4-minute timer, typed answers with typo tolerance, pass-and-return mechanic, daily leaderboard (correct > fewest wrong > fastest), streaks, emoji-ring share comments, scheduled daily posts, optional read-aloud clues where the browser supports it.

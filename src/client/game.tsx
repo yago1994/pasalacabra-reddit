@@ -231,6 +231,7 @@ export const App = () => {
       <div className="w-full max-w-md pb-1">
         <AnswerInput
           disabled={game.submitting || game.feedback !== null || lockForRead}
+          speaking={tts.isSpeaking}
           onGuess={(answer) => void game.guess(answer)}
           onPass={() => void game.pass()}
         />
