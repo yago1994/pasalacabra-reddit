@@ -78,6 +78,14 @@ const START_GRACE_MS = 2000;
 const FALLBACK_GRACE_MS = 1200;
 
 /**
+ * Silence held between the letter prompt ("Starts with G") and the clue itself.
+ * On top of the natural break an utterance boundary already gives, this is long
+ * enough to read as a deliberate beat rather than a stumble — while staying
+ * small enough that 26 letters only cost the turn a few seconds in total.
+ */
+const CLUE_GAP_MS = 500;
+
+/**
  * Experimental clue read-aloud via the browser-built-in speechSynthesis.
  *
  * Detection strategy: we don't try to predict support up front (getVoices()
@@ -102,6 +110,7 @@ export function useSpeechSynthesis(muted: boolean) {
   const mutedRef = useRef(muted);
   const endTimerRef = useRef<number | null>(null);
   const startTimerRef = useRef<number | null>(null);
+  const gapTimerRef = useRef<number | null>(null);
   // null = unknown, true = confirmed working, false = confirmed dead.
   const speechWorksRef = useRef<boolean | null>(null);
   // Best English voice this engine offers; null = use the engine default.
@@ -155,6 +164,7 @@ export function useSpeechSynthesis(muted: boolean) {
     };
   }, [supported]);
 
+  /** Clears the per-utterance watchdogs. Leaves the between-lines gap alone. */
   const clearTimers = useCallback(() => {
     if (endTimerRef.current !== null) {
       window.clearTimeout(endTimerRef.current);
@@ -166,8 +176,16 @@ export function useSpeechSynthesis(muted: boolean) {
     }
   }, []);
 
-  const cancel = useCallback(() => {
+  const clearAllTimers = useCallback(() => {
     clearTimers();
+    if (gapTimerRef.current !== null) {
+      window.clearTimeout(gapTimerRef.current);
+      gapTimerRef.current = null;
+    }
+  }, [clearTimers]);
+
+  const cancel = useCallback(() => {
+    clearAllTimers();
     if (supported) {
       try {
         window.speechSynthesis.cancel();
@@ -177,9 +195,18 @@ export function useSpeechSynthesis(muted: boolean) {
     }
     setIsSpeaking(false);
     pendingFinishRef.current?.();
-  }, [supported, clearTimers]);
+  }, [supported, clearAllTimers]);
 
-  /** Speak the given lines in order; resolve when done, bailed, or skipped. */
+  /**
+   * Speak the given lines one at a time, with a real silence between them;
+   * resolve when done, bailed, or skipped.
+   *
+   * Lines are spoken sequentially rather than queued together because queued
+   * utterances run straight into each other on most engines — "Starts with G"
+   * and the clue come out as one run-on phrase. Waiting for each line to end
+   * and then holding CLUE_GAP_MS of silence is the only way to get a beat the
+   * engine can't collapse.
+   */
   const run = useCallback(
     (lines: string[]): Promise<void> => {
       if (!supported || mutedRef.current) return Promise.resolve();
@@ -189,16 +216,23 @@ export function useSpeechSynthesis(muted: boolean) {
       // Settle any run this one supersedes, so its awaiter can't be stranded.
       pendingFinishRef.current?.();
       window.speechSynthesis.cancel();
-      clearTimers();
+      clearAllTimers();
       setIsSpeaking(true);
 
       return new Promise<void>((resolve) => {
         let settled = false;
+        // Bumped per utterance. `cancel()` makes some engines fire `onend` on
+        // the utterance being discarded, so every handler checks it is still
+        // the current one before acting — otherwise a superseded line could
+        // settle the promise or, worse, advance the sequence.
+        let generation = 0;
+
         const finish = () => {
           if (settled) return;
           settled = true;
+          generation++; // invalidate anything still outstanding
           if (pendingFinishRef.current === finish) pendingFinishRef.current = null;
-          clearTimers();
+          clearAllTimers();
           setIsSpeaking(false);
           resolve();
         };
@@ -213,43 +247,47 @@ export function useSpeechSynthesis(muted: boolean) {
         };
 
         /**
-         * Speak `lines` once, with or without the chosen voice, and call
-         * `onNoStart` if nothing began within `graceMs`.
-         *
-         * Attempts are generation-stamped because `cancel()` makes some engines
-         * fire `onend`/`onerror` on the utterances being discarded — without the
-         * stale check, superseding attempt 1 would settle the promise (and
-         * unlock the input) while attempt 2 was still speaking.
+         * Speak one line. `onDone` fires when it has finished (or been written
+         * off); `onNoStart` fires if nothing began within `graceMs`.
          */
-        let generation = 0;
-        const attempt = (useChosenVoice: boolean, graceMs: number, onNoStart: () => void) => {
+        const speakOne = (
+          text: string,
+          useChosenVoice: boolean,
+          graceMs: number,
+          onNoStart: () => void,
+          onDone: () => void
+        ) => {
           const mine = ++generation;
           const stale = () => mine !== generation;
           clearTimers();
           quietCancel();
           let started = false;
+          let done = false;
+
+          // onend and the end-watchdog can both fire; only the first counts.
+          const settleLine = () => {
+            if (done || stale()) return;
+            done = true;
+            clearTimers();
+            onDone();
+          };
 
           try {
             const voice = useChosenVoice ? voiceRef.current : null;
-            const utterances = lines.map((text) => {
-              const u = new SpeechSynthesisUtterance(text);
-              if (voice) {
-                u.voice = voice;
-                // Must match the voice, or some engines ignore it. Normalized
-                // because a few Android engines report tags as `en_US`.
-                u.lang = voice.lang.replace('_', '-');
-              } else {
-                u.lang = 'en-US';
-              }
-              u.rate = SPEECH_RATE;
-              u.pitch = 1;
-              u.volume = 1;
-              return u;
-            });
-            const first = utterances[0]!;
-            const last = utterances[utterances.length - 1]!;
+            const u = new SpeechSynthesisUtterance(text);
+            if (voice) {
+              u.voice = voice;
+              // Must match the voice, or some engines ignore it. Normalized
+              // because a few Android engines report tags as `en_US`.
+              u.lang = voice.lang.replace('_', '-');
+            } else {
+              u.lang = 'en-US';
+            }
+            u.rate = SPEECH_RATE;
+            u.pitch = 1;
+            u.volume = 1;
 
-            first.onstart = () => {
+            u.onstart = () => {
               if (stale()) return;
               started = true;
               speechWorksRef.current = true;
@@ -259,25 +297,20 @@ export function useSpeechSynthesis(muted: boolean) {
               }
               // Now that speech is really underway, arm a length-scaled end
               // watchdog in case onend never arrives.
-              const totalLen = lines.join(' ').length;
-              const estMs = (totalLen / SPEECH_RATE) * 90;
+              const estMs = (text.length / SPEECH_RATE) * 90;
               endTimerRef.current = window.setTimeout(
-                finish,
-                Math.min(MAX_SPEECH_MS, Math.max(4000, estMs))
+                settleLine,
+                Math.min(MAX_SPEECH_MS, Math.max(2500, estMs))
               );
             };
-            last.onend = () => {
-              if (!stale()) finish();
-            };
-            last.onerror = () => {
-              if (!stale()) finish();
-            };
+            u.onend = settleLine;
+            u.onerror = settleLine;
 
             startTimerRef.current = window.setTimeout(() => {
               if (!stale() && !started) onNoStart();
             }, graceMs);
 
-            for (const u of utterances) window.speechSynthesis.speak(u);
+            window.speechSynthesis.speak(u);
           } catch {
             if (!stale()) onNoStart();
           }
@@ -289,31 +322,60 @@ export function useSpeechSynthesis(muted: boolean) {
           finish();
         };
 
-        attempt(true, START_GRACE_MS, () => {
-          // The chosen voice produced no audio and no events. Some WebViews
-          // no-op on `utterance.voice` entirely, so before writing the engine
-          // off, retry once on its own default voice — a robotic voice still
-          // beats silence. The rejection sticks for the session so later clues
-          // don't pay the deadline again.
-          if (voiceRef.current) {
-            voiceRef.current = null;
-            voiceRejectedRef.current = true;
-            attempt(false, FALLBACK_GRACE_MS, giveUp);
-          } else {
-            giveUp();
+        let index = 0;
+        const next = () => {
+          if (settled) return;
+          if (index >= lines.length) {
+            finish();
+            return;
           }
-        });
+          const text = lines[index]!;
+          const isFirstLine = index === 0;
+          index++;
+
+          const advance = () => {
+            if (settled) return;
+            if (index >= lines.length) {
+              finish();
+              return;
+            }
+            gapTimerRef.current = window.setTimeout(next, CLUE_GAP_MS);
+          };
+
+          if (isFirstLine) {
+            speakOne(text, true, START_GRACE_MS, () => {
+              // The chosen voice produced no audio and no events. Some WebViews
+              // no-op on `utterance.voice` entirely, so before writing the
+              // engine off, retry once on its own default voice — a robotic
+              // voice still beats silence. The rejection sticks for the session
+              // so later clues don't pay the deadline again.
+              if (voiceRef.current) {
+                voiceRef.current = null;
+                voiceRejectedRef.current = true;
+                speakOne(text, false, FALLBACK_GRACE_MS, giveUp, advance);
+              } else {
+                giveUp();
+              }
+            }, advance);
+          } else {
+            // The engine is already proven by now; if a later line somehow
+            // fails to start, move on rather than stalling the read.
+            speakOne(text, true, START_GRACE_MS, advance, advance);
+          }
+        };
+
+        next();
       });
     },
-    [supported, clearTimers]
+    [supported, clearTimers, clearAllTimers]
   );
 
   const speak = useCallback(
     (prefix: string, question: string) => {
-      // One utterance, not two: queued utterances restart the engine's prosody
-      // and leave a dead gap between them. A sentence break gives a natural
-      // pause after "Starts with G" and keeps the intonation continuous.
-      void run([`${prefix}. ${question}`]);
+      // Two lines, so the letter prompt lands as its own phrase with a beat
+      // after it. Merged into one utterance the clue runs straight on from
+      // "Starts with G" and the whole thing is hard to follow.
+      void run([prefix, question]);
     },
     [run]
   );
