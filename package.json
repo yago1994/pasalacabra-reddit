@@ -12,6 +12,7 @@
     "lint": "eslint 'src/**/*.{ts,tsx}'",
     "login": "devvit login",
     "prettier": "prettier --write .",
+    "test:speech": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/client/hooks/speechSequence.test.mjs",
     "type-check": "tsc --build"
   },
   "engines": {
