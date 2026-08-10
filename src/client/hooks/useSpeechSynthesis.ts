@@ -79,12 +79,12 @@ const START_GRACE_MS = 2000;
 const FALLBACK_GRACE_MS = 1200;
 
 /**
- * Silence held between the letter prompt ("Starts with G") and the clue itself.
- * Deliberately long enough to be unmistakable — a host's beat, not a stumble.
- * It costs the turn roughly this much per letter, so it trades clock for
- * intelligibility; tune it here if that balance needs to change.
+ * Silence held between the letter prompt ("Starts with G") and the clue itself,
+ * on top of the natural break an utterance boundary already gives. It costs the
+ * turn roughly this much per letter — ~8s across a full ring — so it trades
+ * clock for intelligibility; tune it here if that balance needs to change.
  */
-const CLUE_GAP_MS = 900;
+const CLUE_GAP_MS = 300;
 
 /**
  * Experimental clue read-aloud via the browser-built-in speechSynthesis.
